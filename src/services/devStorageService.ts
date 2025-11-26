@@ -7,7 +7,6 @@ interface DevSnippet {
   description: string | null
   is_public: boolean
   view_count: number
-  like_count: number
   created_at: string
   updated_at: string
   user_id: string | null
@@ -41,7 +40,6 @@ class DevStorageService {
         description: data.description || null,
         is_public: data.is_public !== false,
         view_count: 0,
-        like_count: 0,
         created_at: now,
         updated_at: now,
         user_id: null

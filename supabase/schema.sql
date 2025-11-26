@@ -1,5 +1,5 @@
 -- Supabase数据库结构设计
--- HTMLShare V2 - Next.js + Supabase + Tailwind
+-- HTMLShare V3 - 简化版本 (移除社交功能)
 
 -- 启用必要的扩展
 create extension if not exists "uuid-ossp";
@@ -27,7 +27,6 @@ create table public.snippets (
   is_public boolean default true,
   is_featured boolean default false,
   view_count integer default 0,
-  like_count integer default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -48,22 +47,6 @@ create table public.snippet_tags (
   primary key (snippet_id, tag_id)
 );
 
--- 点赞表
-create table public.snippet_likes (
-  user_id uuid references public.profiles(id) on delete cascade,
-  snippet_id uuid references public.snippets(id) on delete cascade,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  primary key (user_id, snippet_id)
-);
-
--- 收藏表
-create table public.snippet_favorites (
-  user_id uuid references public.profiles(id) on delete cascade,
-  snippet_id uuid references public.snippets(id) on delete cascade,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  primary key (user_id, snippet_id)
-);
-
 -- 评论表
 create table public.comments (
   id uuid default uuid_generate_v4() primary key,
@@ -73,17 +56,6 @@ create table public.comments (
   parent_id uuid references public.comments(id) on delete cascade,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- 分享记录表
-create table public.share_logs (
-  id uuid default uuid_generate_v4() primary key,
-  snippet_id uuid references public.snippets(id) on delete cascade,
-  user_id uuid references public.profiles(id) on delete set null,
-  ip_address inet,
-  user_agent text,
-  referrer text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- 创建索引
@@ -121,50 +93,10 @@ create trigger handle_comments_updated_at
   before update on public.comments
   for each row execute function public.handle_updated_at();
 
--- 触发器函数：更新点赞数
-create or replace function public.update_snippet_like_count()
-returns trigger as $$
-begin
-  if tg_op = 'INSERT' then
-    update public.snippets
-    set like_count = like_count + 1
-    where id = new.snippet_id;
-  elsif tg_op = 'DELETE' then
-    update public.snippets
-    set like_count = like_count - 1
-    where id = old.snippet_id;
-  end if;
-  return coalesce(new, old);
-end;
-$$ language plpgsql security definer;
-
--- 创建点赞数触发器
-create trigger update_snippet_like_count_trigger
-  after insert or delete on public.snippet_likes
-  for each row execute function public.update_snippet_like_count();
-
--- 触发器函数：增加浏览数
-create or replace function public.increment_view_count()
-returns trigger as $$
-begin
-  update public.snippets
-  set view_count = view_count + 1
-  where id = new.snippet_id;
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- 创建浏览数触发器
-create trigger increment_view_count_trigger
-  after insert on public.share_logs
-  for each row execute function public.increment_view_count();
-
 -- Row Level Security (RLS) 策略
 alter table public.profiles enable row level security;
 alter table public.snippets enable row level security;
 alter table public.comments enable row level security;
-alter table public.snippet_likes enable row level security;
-alter table public.snippet_favorites enable row level security;
 alter table public.tags enable row level security;
 alter table public.snippet_tags enable row level security;
 
@@ -192,26 +124,6 @@ create policy "Users can update own snippets" on public.snippets
   for update using (auth.uid() = user_id);
 
 create policy "Users can delete own snippets" on public.snippets
-  for delete using (auth.uid() = user_id);
-
--- 点赞策略
-create policy "Users can view all likes" on public.snippet_likes
-  for select using (true);
-
-create policy "Users can like snippets" on public.snippet_likes
-  for insert with check (auth.uid() = user_id);
-
-create policy "Users can unlike snippets" on public.snippet_likes
-  for delete using (auth.uid() = user_id);
-
--- 收藏策略
-create policy "Users can view own favorites" on public.snippet_favorites
-  for select using (auth.uid() = user_id);
-
-create policy "Users can favorite snippets" on public.snippet_favorites
-  for insert with check (auth.uid() = user_id);
-
-create policy "Users can unfavorite snippets" on public.snippet_favorites
   for delete using (auth.uid() = user_id);
 
 -- 评论策略
@@ -244,16 +156,15 @@ returns table (
   title text,
   language text,
   view_count integer,
-  like_count integer,
   created_at timestamp with time zone
 ) as $$
 begin
   return query
-  select s.id, s.title, s.language, s.view_count, s.like_count, s.created_at
+  select s.id, s.title, s.language, s.view_count, s.created_at
   from public.snippets s
   where s.is_public = true
     and s.created_at >= now() - interval '1 day' * days_back
-  order by (s.view_count + s.like_count * 2) desc, s.created_at desc
+  order by s.view_count desc, s.created_at desc
   limit limit_count;
 end;
 $$ language plpgsql security definer;

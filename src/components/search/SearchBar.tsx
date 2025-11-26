@@ -51,8 +51,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const sortOptions = [
     { value: 'created_at', label: '创建时间' },
     { value: 'updated_at', label: '更新时间' },
-    { value: 'view_count', label: '查看次数' },
-    { value: 'like_count', label: '点赞数量' }
+    { value: 'view_count', label: '查看次数' }
   ]
 
   const handleSearch = useCallback(() => {
@@ -206,18 +205,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
               >
                 最新发布
-              </button>
-              <button
-                onClick={() => {
-                  setFilters({
-                    sort_by: 'like_count',
-                    sort_order: 'desc'
-                  })
-                  onSearch(query, { sort_by: 'like_count', sort_order: 'desc' })
-                }}
-                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors"
-              >
-                最受欢迎
               </button>
               <button
                 onClick={() => {

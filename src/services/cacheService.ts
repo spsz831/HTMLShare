@@ -81,7 +81,6 @@ export class CacheService {
     const statsKey = CacheKeys.snippetStats(snippet.id)
     const stats = {
       view_count: snippet.view_count || 0,
-      like_count: snippet.like_count || 0,
       updated_at: new Date().toISOString()
     }
     await this.set(statsKey, stats, CacheTTL.snippetStats)

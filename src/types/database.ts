@@ -19,13 +19,10 @@ export interface Snippet {
   is_public: boolean
   is_featured: boolean
   view_count: number
-  like_count: number
   created_at: string
   updated_at: string
   profiles?: Profile
   tags?: Tag[]
-  is_liked?: boolean
-  is_favorited?: boolean
 }
 
 export interface Tag {
@@ -46,18 +43,6 @@ export interface Comment {
   updated_at: string
   profiles?: Profile
   replies?: Comment[]
-}
-
-export interface SnippetLike {
-  user_id: string
-  snippet_id: string
-  created_at: string
-}
-
-export interface SnippetFavorite {
-  user_id: string
-  snippet_id: string
-  created_at: string
 }
 
 export type LanguageType =
@@ -107,6 +92,6 @@ export interface SearchFilters {
   tags?: string[]
   user_id?: string
   is_featured?: boolean
-  sort_by?: 'created_at' | 'updated_at' | 'view_count' | 'like_count'
+  sort_by?: 'created_at' | 'updated_at' | 'view_count'
   sort_order?: 'asc' | 'desc'
 }

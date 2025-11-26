@@ -59,9 +59,7 @@ export class SnippetService {
               name,
               color
             )
-          ),
-          snippet_likes!left (user_id),
-          snippet_favorites!left (user_id)
+          )
         `)
         .eq('is_public', true)
         .order(filters.sort_by || 'created_at', {
@@ -92,9 +90,7 @@ export class SnippetService {
       // 处理数据格式
       const snippets = data?.map((snippet: any) => ({
         ...snippet,
-        tags: snippet.tags?.map((t: any) => t.tags) || [],
-        is_liked: snippet.snippet_likes?.length > 0,
-        is_favorited: snippet.snippet_favorites?.length > 0
+        tags: snippet.tags?.map((t: any) => t.tags) || []
       }))
 
       const result = {
@@ -194,8 +190,7 @@ export class SnippetService {
         .insert([{
           ...snippetData,
           user_id: userId,
-          view_count: 0,
-          like_count: 0
+          view_count: 0
         }])
         .select()
         .single()
@@ -353,83 +348,6 @@ export class SnippetService {
     }
   }
 
-  // 喜欢/取消喜欢代码片段
-  async toggleLike(snippetId: string, userId: string) {
-    try {
-      // 检查是否已经喜欢
-      const { data: existing } = await this.supabase
-        .from('snippet_likes')
-        .select('*')
-        .eq('snippet_id', snippetId)
-        .eq('user_id', userId)
-        .single()
-
-      if (existing) {
-        // 取消喜欢
-        await this.supabase
-          .from('snippet_likes')
-          .delete()
-          .eq('snippet_id', snippetId)
-          .eq('user_id', userId)
-
-        // 减少喜欢计数
-        await this.supabase.rpc('decrement_like_count', { snippet_id: snippetId })
-
-        return { data: { is_liked: false }, error: null }
-      } else {
-        // 添加喜欢
-        await this.supabase
-          .from('snippet_likes')
-          .insert([{ snippet_id: snippetId, user_id: userId }])
-
-        // 增加喜欢计数
-        await this.supabase.rpc('increment_like_count', { snippet_id: snippetId })
-
-        return { data: { is_liked: true }, error: null }
-      }
-    } catch (error: any) {
-      return {
-        data: null,
-        error: error.message
-      }
-    }
-  }
-
-  // 收藏/取消收藏代码片段
-  async toggleFavorite(snippetId: string, userId: string) {
-    try {
-      // 检查是否已经收藏
-      const { data: existing } = await this.supabase
-        .from('snippet_favorites')
-        .select('*')
-        .eq('snippet_id', snippetId)
-        .eq('user_id', userId)
-        .single()
-
-      if (existing) {
-        // 取消收藏
-        await this.supabase
-          .from('snippet_favorites')
-          .delete()
-          .eq('snippet_id', snippetId)
-          .eq('user_id', userId)
-
-        return { data: { is_favorited: false }, error: null }
-      } else {
-        // 添加收藏
-        await this.supabase
-          .from('snippet_favorites')
-          .insert([{ snippet_id: snippetId, user_id: userId }])
-
-        return { data: { is_favorited: true }, error: null }
-      }
-    } catch (error: any) {
-      return {
-        data: null,
-        error: error.message
-      }
-    }
-  }
 
   // 添加标签到代码片段
   private async addTagsToSnippet(snippetId: string, tagNames: string[]) {

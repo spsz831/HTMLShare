@@ -14,7 +14,6 @@ interface Snippet {
   language: string
   description: string | null
   view_count: number
-  like_count: number
   created_at: string
 }
 

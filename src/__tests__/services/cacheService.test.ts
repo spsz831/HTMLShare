@@ -75,8 +75,7 @@ describe('CacheService', () => {
         id: '123',
         title: 'Test Snippet',
         content: 'console.log("test")',
-        view_count: 10,
-        like_count: 5
+        view_count: 10
       }
 
       mockRedisClient.setex.mockResolvedValue('OK')

@@ -14,7 +14,7 @@ export class OptimizedQueryService {
     limit?: number
     language?: string
     userId?: string
-    sortBy?: 'created_at' | 'view_count' | 'like_count' | 'popularity'
+    sortBy?: 'created_at' | 'view_count' | 'popularity'
     sortOrder?: 'asc' | 'desc'
     search?: string
   }) {
@@ -45,7 +45,6 @@ export class OptimizedQueryService {
           language,
           description,
           view_count,
-          like_count,
           created_at,
           updated_at,
           user_id,

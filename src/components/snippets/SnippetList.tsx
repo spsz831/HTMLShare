@@ -2,23 +2,17 @@
 
 import React from 'react'
 import { Snippet } from '@/types/database'
-import { useAuth } from '@/components/auth/AuthProvider'
 import Link from 'next/link'
 
 interface SnippetListProps {
   snippets: Snippet[]
   loading?: boolean
-  onLike?: (id: string) => void
-  onFavorite?: (id: string) => void
 }
 
 const SnippetList: React.FC<SnippetListProps> = ({
   snippets,
-  loading = false,
-  onLike,
-  onFavorite
+  loading = false
 }) => {
-  const { user } = useAuth()
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -182,37 +176,6 @@ const SnippetList: React.FC<SnippetListProps> = ({
                   </svg>
                   <span className="text-sm">{snippet.view_count}</span>
                 </div>
-
-                {user && (
-                  <>
-                    <button
-                      onClick={() => onLike?.(snippet.id)}
-                      className={`flex items-center gap-2 text-sm transition-colors ${
-                        snippet.is_liked
-                          ? 'text-red-500 hover:text-red-600'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill={snippet.is_liked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      <span>{snippet.like_count}</span>
-                    </button>
-
-                    <button
-                      onClick={() => onFavorite?.(snippet.id)}
-                      className={`flex items-center gap-2 text-sm transition-colors ${
-                        snippet.is_favorited
-                          ? 'text-yellow-500 hover:text-yellow-600'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-yellow-500'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill={snippet.is_favorited ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                    </button>
-                  </>
-                )}
               </div>
 
               <Link
