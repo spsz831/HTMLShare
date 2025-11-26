@@ -253,13 +253,13 @@ export default function Home() {
 
       const data = await response.json()
 
-      if (!data.success || !data.snippet) {
-        const error = new Error('服务器返回数据格式错误')
+      if (!data.success || !data.data) {
+        const error = new Error(data.error || '服务器返回数据格式错误')
         errorTracker.reportApiError('/api/snippets', 200, error, data)
         throw error
       }
 
-      return data.snippet
+      return data.data
     },
     '/api/snippets'
   )

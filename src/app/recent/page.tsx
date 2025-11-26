@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Clock, ExternalLink, Code2 } from 'lucide-react'
 import LoadingSpinner from '@/components/LoadingSpinner'
@@ -43,15 +43,15 @@ export default function RecentPage() {
     const data = await response.json()
 
     if (!data.success) {
-      throw new Error('服务器返回数据格式错误')
+      throw new Error(data.error || '服务器返回数据格式错误')
     }
 
-    return data.snippets || []
+    return data.data || []
   }
 
   const { retry, isRetrying } = useRetry(fetchRecentSnippetsRequest, 3, 1500)
 
-  const fetchRecentSnippets = async () => {
+  const fetchRecentSnippets = useCallback(async () => {
     const startTime = performance.now()
     setLoading(true)
     setError(null)
@@ -82,7 +82,7 @@ export default function RecentPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [retry])
 
   const handleRetryFetch = async () => {
     setError(null)
@@ -91,7 +91,7 @@ export default function RecentPage() {
 
   useEffect(() => {
     fetchRecentSnippets()
-  }, [])
+  }, [fetchRecentSnippets])
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)

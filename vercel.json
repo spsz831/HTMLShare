@@ -6,7 +6,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "outputDirectory": ".next",
-  "public": false,
+  "public": true,
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://vwkxyfuczdeqstmpuskb.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3a3h5ZnVjemRlcXN0bXB1c2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjc2MjcsImV4cCI6MjA3OTYwMzYyN30.xAVYis2Ap_ZREAt6h23U177JXKkcurE4sWBkwZCFe6U",

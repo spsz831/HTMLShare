@@ -165,11 +165,11 @@ export default function SnippetViewPage() {
 
     const data = await response.json()
 
-    if (!data.success || !data.snippet) {
+    if (!data.success || !data.data) {
       throw new Error('服务器返回数据格式错误')
     }
 
-    return data.snippet
+    return data.data
   }
 
   const { retry, isRetrying } = useRetry(fetchSnippetRequest, 3, 1500)
