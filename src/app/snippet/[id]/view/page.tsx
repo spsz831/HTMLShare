@@ -224,7 +224,7 @@ export default function SnippetViewPage() {
       }}>
         <LoadingSpinner
           size="lg"
-          text={isRetrying ? '重试加载中...' : '加载中...'}
+          text={isRetrying ? '处理中...' : '加载中...'}
           className="text-blue-600"
         />
       </div>
