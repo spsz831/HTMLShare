@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase-server'
 import { SnippetService } from '@/services/snippetService'
 import { LanguageType } from '@/types/database'
 import { devStorage, isDevMode } from '@/services/devStorageService'
+import { withCompression } from '@/lib/compression'
 
-export async function GET(request: NextRequest) {
+export const GET = withCompression(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -55,9 +56,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withCompression(async (request: NextRequest) => {
   try {
     const body = await request.json()
     const { title, content, language, description, is_public = true } = body
@@ -145,9 +146,32 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('API error:', error)
+
+    // 更详细的错误处理
+    let errorMessage = '服务器错误'
+    let statusCode = 500
+
+    if (error.message?.includes('JSON')) {
+      errorMessage = '请求数据格式错误'
+      statusCode = 400
+    } else if (error.code === 'PGRST204') {
+      errorMessage = '创建失败，请检查数据格式'
+      statusCode = 400
+    } else if (error.code === 'PGRST116') {
+      errorMessage = '数据库连接超时，请重试'
+      statusCode = 503
+    } else if (error.message?.includes('network')) {
+      errorMessage = '网络错误，请检查连接'
+      statusCode = 503
+    }
+
     return NextResponse.json(
-      { error: '服务器错误' },
-      { status: 500 }
+      {
+        success: false,
+        error: errorMessage,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message })
+      },
+      { status: statusCode }
     )
   }
-}
+})

@@ -1,8 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Upload, Trash2, Link as LinkIcon, Copy, Check, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { LoadingButton } from '@/components/LoadingSpinner'
+import RetryableError, { useRetry } from '@/components/RetryableError'
+import { DebugController } from '@/components/DebugPanel'
+import { performanceMonitor, withApiPerformanceTracking, usePerfMeasure } from '@/lib/performance'
+import { errorTracker } from '@/lib/errorTracking'
 
 type Language = 'javascript' | 'typescript' | 'python' | 'html' | 'css' | 'json' | 'markdown' | 'plaintext'
 
@@ -23,6 +28,26 @@ export default function Home() {
   const [isCreating, setIsCreating] = useState(false)
   const [shareUrl, setShareUrl] = useState('')
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // 性能监控
+  usePerfMeasure('HomePage')
+
+  // 页面加载性能记录
+  useEffect(() => {
+    const recordPageLoad = () => {
+      console.log('Page loaded:', performance.now())
+      performanceMonitor.recordPageLoad('home')
+    }
+
+    // 等待页面完全加载后记录性能
+    if (document.readyState === 'complete') {
+      recordPageLoad()
+    } else {
+      window.addEventListener('load', recordPageLoad)
+      return () => window.removeEventListener('load', recordPageLoad)
+    }
+  }, [])
 
   // 智能检测代码语言
   const detectLanguage = (code: string): Language => {
@@ -188,16 +213,14 @@ export default function Home() {
     setCopied(false)
   }
 
-  const handleCreateSnippet = async () => {
-    if (!content.trim()) return
-
-    setIsCreating(true)
-    try {
-      // 调用API创建代码片段
+  // 创建代码片段的核心逻辑（用于重试）
+  const createSnippetRequest = withApiPerformanceTracking(
+    async () => {
       const response = await fetch('/api/snippets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
           content: content.trim(),
@@ -208,11 +231,54 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '创建失败')
+        const contentType = response.headers.get('content-type')
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json()
+            errorMessage = errorData.error || errorData.message || errorMessage
+          } else {
+            const errorText = await response.text()
+            errorMessage = errorText || errorMessage
+          }
+        } catch (parseError) {
+          console.warn('无法解析错误响应:', parseError)
+        }
+
+        // 报告API错误
+        errorTracker.reportApiError('/api/snippets', response.status, new Error(errorMessage))
+        throw new Error(errorMessage)
       }
 
-      const { snippet } = await response.json()
+      const data = await response.json()
+
+      if (!data.success || !data.snippet) {
+        const error = new Error('服务器返回数据格式错误')
+        errorTracker.reportApiError('/api/snippets', 200, error, data)
+        throw error
+      }
+
+      return data.snippet
+    },
+    '/api/snippets'
+  )
+
+  const { retry, isRetrying } = useRetry(createSnippetRequest, 3, 1000)
+
+  const handleCreateSnippet = async () => {
+    if (!content.trim()) return
+
+    const startTime = performance.now()
+    setIsCreating(true)
+    setError(null)
+
+    try {
+      const snippet = await retry()
+
+      // 记录用户交互性能
+      const duration = performance.now() - startTime
+      performanceMonitor.recordUserInteraction('create_snippet', duration)
 
       // 生成真实的分享链接
       const isHtml = language.toLowerCase() === 'html'
@@ -223,10 +289,30 @@ export default function Home() {
 
     } catch (error) {
       console.error('创建代码片段失败:', error)
-      alert(error instanceof Error ? error.message : '网络错误，请重试')
+
+      let errorMessage = '创建失败，请重试'
+
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = '网络连接失败，请检查网络连接'
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      // 报告用户操作错误
+      errorTracker.reportUserActionError('create_snippet', error as Error, {
+        language,
+        contentLength: content.length
+      })
+
+      setError(errorMessage)
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleRetryCreate = async () => {
+    setError(null)
+    await handleCreateSnippet()
   }
 
   const handleCopy = async () => {
@@ -337,17 +423,29 @@ export default function Home() {
                 </button>
               </div>
 
-              <button
+              <LoadingButton
                 onClick={handleCreateSnippet}
-                disabled={!content.trim() || isCreating}
+                loading={isCreating || isRetrying}
+                loadingText={isRetrying ? '重试中...' : '生成中...'}
+                disabled={!content.trim()}
                 className="flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
               >
                 <LinkIcon className="w-4 h-4" />
-                <span>{isCreating ? '生成中...' : '生成链接'}</span>
-              </button>
+                <span>生成链接</span>
+              </LoadingButton>
             </div>
           </div>
         </div>
+
+        {/* Error Message with Retry */}
+        {error && (
+          <RetryableError
+            error={error}
+            onRetry={handleRetryCreate}
+            className="mt-6"
+            showErrorDetails={process.env.NODE_ENV === 'development'}
+          />
+        )}
 
         {/* Share URL */}
         {shareUrl && (
@@ -397,10 +495,12 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-20 py-8 text-center text-sm text-gray-500">
-        <p>HTMLShare - 基于 Next.js + Supabase + Tailwind CSS 构建</p>
-        <p className="mt-1">开源代码分享平台 • 简单快捷 • 安全稳定</p>
+      <footer className="mt-20 py-8 text-center text-sm text-gray-400">
+        <p>HTMLShare - 企业级代码分享平台 | Next.js + Supabase + TypeScript</p>
       </footer>
+
+      {/* Debug Panel */}
+      <DebugController />
     </div>
   )
 }

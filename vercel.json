@@ -1,6 +1,5 @@
-# Vercel部署配置
 {
-  "name": "htmlshare-v2",
+  "name": "htmlshare",
   "version": 2,
   "framework": "nextjs",
   "buildCommand": "npm run build",
@@ -9,18 +8,18 @@
   "outputDirectory": ".next",
   "public": false,
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_key",
-    "NEXT_PUBLIC_APP_URL": "@app_url",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://vwkxyfuczdeqstmpuskb.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3a3h5ZnVjemRlcXN0bXB1c2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjc2MjcsImV4cCI6MjA3OTYwMzYyN30.xAVYis2Ap_ZREAt6h23U177JXKkcurE4sWBkwZCFe6U",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3a3h5ZnVjemRlcXN0bXB1c2tiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDAyNzYyNywiZXhwIjoyMDc5NjAzNjI3fQ.9ylZzxrdU5S5mf_DTFTRHrsOWEly4ZIrQ785791ZDRs",
+    "NEXT_PUBLIC_APP_URL": "https://htmlshare.vercel.app",
     "NEXT_PUBLIC_APP_NAME": "HTMLShare"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-      "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_key",
-      "NEXT_PUBLIC_APP_URL": "@app_url",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://vwkxyfuczdeqstmpuskb.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3a3h5ZnVjemRlcXN0bXB1c2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjc2MjcsImV4cCI6MjA3OTYwMzYyN30.xAVYis2Ap_ZREAt6h23U177JXKkcurE4sWBkwZCFe6U",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3a3h5ZnVjemRlcXN0bXB1c2tiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDAyNzYyNywiZXhwIjoyMDc5NjAzNjI3fQ.9ylZzxrdU5S5mf_DTFTRHrsOWEly4ZIrQ785791ZDRs",
+      "NEXT_PUBLIC_APP_URL": "https://htmlshare.vercel.app",
       "NEXT_PUBLIC_APP_NAME": "HTMLShare"
     }
   },
@@ -29,7 +28,7 @@
       "maxDuration": 30
     }
   },
-  "regions": ["hkg1", "nrt1"],
+  "regions": ["hkg1"],
   "redirects": [
     {
       "source": "/",
@@ -59,6 +58,68 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/api/snippets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/snippet/(.*)/view",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=600, stale-while-revalidate=3600"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
         }
       ]
     }

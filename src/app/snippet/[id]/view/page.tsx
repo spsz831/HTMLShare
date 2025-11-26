@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import RetryableError, { useRetry } from '@/components/RetryableError'
 
 interface Snippet {
   id: string
@@ -151,20 +153,51 @@ export default function SnippetViewPage() {
     }
   }, [params.id]) // useCallback结束
 
+  // 获取代码片段的核心请求逻辑（用于重试）
+  const fetchSnippetRequest = async () => {
+    const response = await fetch(`/api/snippets/${params.id}`, {
+      headers: { 'Cache-Control': 'no-cache' }
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (!data.success || !data.snippet) {
+      throw new Error('服务器返回数据格式错误')
+    }
+
+    return data.snippet
+  }
+
+  const { retry, isRetrying } = useRetry(fetchSnippetRequest, 3, 1500)
+
   const fetchSnippet = async (id: string) => {
     try {
-      const response = await fetch(`/api/snippets/${id}`)
-      if (response.ok) {
-        const data = await response.json()
-        setSnippet(data.snippet)
-      } else {
-        setError('内容未找到')
-      }
+      setLoading(true)
+      setError('')
+
+      const snippetData = await retry()
+      setSnippet(snippetData)
     } catch (error) {
-      setError('加载失败')
+      console.error('获取代码片段失败:', error)
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setError('网络连接失败，请检查网络连接')
+      } else if (error instanceof Error) {
+        setError(`加载失败: ${error.message}`)
+      } else {
+        setError('未知错误，请稍后重试')
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRetryFetch = async () => {
+    setError('')
+    await fetchSnippet(params.id as string)
   }
 
   useEffect(() => {
@@ -189,26 +222,11 @@ export default function SnippetViewPage() {
         fontFamily: 'system-ui, sans-serif',
         background: '#f8f9fa'
       }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '50px',
-            height: '50px',
-            border: '3px solid #e3e3e3',
-            borderTop: '3px solid #007bff',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <p style={{ color: '#666', margin: 0 }}>加载中...</p>
-        </div>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `
-        }} />
+        <LoadingSpinner
+          size="lg"
+          text={isRetrying ? '重试加载中...' : '加载中...'}
+          className="text-blue-600"
+        />
       </div>
     )
   }
@@ -221,20 +239,59 @@ export default function SnippetViewPage() {
         alignItems: 'center',
         height: '100vh',
         fontFamily: 'system-ui, sans-serif',
-        background: '#f8f9fa'
+        background: '#f8f9fa',
+        padding: '20px'
       }}>
-        <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#333', marginBottom: '16px' }}>内容未找到</h1>
-          <p style={{ color: '#666', marginBottom: '24px' }}>{error || '该内容可能已被删除或不存在'}</p>
-          <Link href="/" style={{
-            display: 'inline-block',
-            padding: '12px 24px',
-            background: '#007bff',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '6px',
-            transition: 'all 0.2s'
-          }}>返回首页</Link>
+        <div style={{
+          maxWidth: '500px',
+          width: '100%',
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          padding: '40px'
+        }}>
+          {error ? (
+            <>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545', marginBottom: '16px' }}>
+                加载失败
+              </h1>
+              <RetryableError
+                error={error}
+                onRetry={handleRetryFetch}
+                retryText="重新加载"
+                showErrorDetails={process.env.NODE_ENV === 'development'}
+                className="mb-6"
+              />
+              <Link href="/" style={{
+                display: 'inline-block',
+                padding: '12px 24px',
+                background: '#6c757d',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '6px',
+                transition: 'all 0.2s',
+                marginTop: '16px'
+              }}>返回首页</Link>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#333', marginBottom: '16px' }}>
+                内容未找到
+              </h1>
+              <p style={{ color: '#666', marginBottom: '24px' }}>
+                该内容可能已被删除或不存在
+              </p>
+              <Link href="/" style={{
+                display: 'inline-block',
+                padding: '12px 24px',
+                background: '#007bff',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '6px',
+                transition: 'all 0.2s'
+              }}>返回首页</Link>
+            </>
+          )}
         </div>
       </div>
     )
