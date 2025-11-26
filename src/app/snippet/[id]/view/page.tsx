@@ -174,7 +174,7 @@ export default function SnippetViewPage() {
 
   const { retry, isRetrying } = useRetry(fetchSnippetRequest, 3, 1500)
 
-  const fetchSnippet = async (id: string) => {
+  const fetchSnippet = useCallback(async (id: string) => {
     try {
       setLoading(true)
       setError('')
@@ -193,7 +193,7 @@ export default function SnippetViewPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [retry])
 
   const handleRetryFetch = async () => {
     setError('')
@@ -204,7 +204,7 @@ export default function SnippetViewPage() {
     if (params.id) {
       fetchSnippet(params.id as string)
     }
-  }, [params.id])
+  }, [params.id, fetchSnippet])
 
   useEffect(() => {
     if (snippet && snippet.content) {
