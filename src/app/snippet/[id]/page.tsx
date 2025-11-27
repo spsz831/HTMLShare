@@ -74,14 +74,7 @@ export default function SnippetPage() {
     <!-- Modern CSS Reset -->
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-            line-height: 1.6;
-            color: #333;
-            background: #fff;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+        /* 注意：不重置body样式，保留用户的背景和布局设置 */
         img { max-width: 100%; height: auto; }
         a { color: #007bff; text-decoration: none; }
         a:hover { text-decoration: underline; }
@@ -113,28 +106,18 @@ export default function SnippetPage() {
 </body>
 </html>`;
           } else {
-            // 如果是完整HTML，注入必要的CDN链接
-            enhancedHtml = content
-              .replace(/<head>/i, `<head>
+            // 如果是完整HTML，检查是否需要注入框架
+            enhancedHtml = content;
+
+            // 只在没有相关框架时才注入
+            if (!content.includes('tailwindcss.com') && !content.includes('bootstrap')) {
+              enhancedHtml = content
+                .replace(/<head>/i, `<head>
     <!-- HTMLShare Enhanced Rendering -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUa+IgAdbYQFnX1ZnlG2xCBCl8VxM9A5xDf+VqhR+Fn0gx6r8p+DGGlQEG6d" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <style>
-        body {
-            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-    </style>`)
-              .replace(/<\/body>/i, `
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-</body>`);
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">`)
+            }
           }
 
           // 保留原始HTML不做过滤
@@ -353,10 +336,9 @@ export default function SnippetPage() {
                 {snippet.language.toLowerCase() === 'html' ? (
                   <iframe
                     srcDoc={renderedContent}
-                    className="w-full min-h-[600px] border-0 bg-white"
+                    className="w-full min-h-[600px] border-0"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
                     title="HTML Preview"
-                    style={{ backgroundColor: 'white' }}
                     loading="eager"
                   />
                 ) : (

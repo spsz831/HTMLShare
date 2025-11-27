@@ -219,8 +219,7 @@ export default function SnippetViewPage() {
             border: 'none',
             margin: 0,
             padding: 0,
-            display: 'block',
-            backgroundColor: 'white'
+            display: 'block'
           }}
           title="HTML Preview"
           loading="eager"
