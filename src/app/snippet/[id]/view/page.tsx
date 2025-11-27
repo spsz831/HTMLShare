@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import RetryableError, { useRetry } from '@/components/RetryableError'
+import RetryableError from '@/components/RetryableError'
 
 interface Snippet {
   id: string
@@ -153,34 +153,27 @@ export default function SnippetViewPage() {
     }
   }, []) // 移除依赖项以避免无限循环
 
-  // 获取代码片段的核心请求逻辑（用于重试）
-  const fetchSnippetRequest = async () => {
-    const response = await fetch(`/api/snippets/${params.id}`, {
-      headers: { 'Cache-Control': 'no-cache' }
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (!data.success) {
-      throw new Error(data.error || '服务器返回数据格式错误')
-    }
-
-    return data.data
-  }
-
-  const { retry, isRetrying } = useRetry(fetchSnippetRequest, 2, 3000)
-
+  // 获取代码片段函数 - 简化版本，移除复杂的重试逻辑
   const fetchSnippet = useCallback(async (id: string) => {
     try {
       setLoading(true)
       setError('')
 
-      const snippetData = await retry()
-      setSnippet(snippetData)
+      const response = await fetch(`/api/snippets/${id}`, {
+        headers: { 'Cache-Control': 'no-cache' }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || '服务器返回数据格式错误')
+      }
+
+      setSnippet(data.data)
     } catch (error) {
       console.error('获取代码片段失败:', error)
       if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -193,8 +186,9 @@ export default function SnippetViewPage() {
     } finally {
       setLoading(false)
     }
-  }, [retry])
+  }, [])
 
+  // 简化重试处理函数
   const handleRetryFetch = async () => {
     setError('')
     await fetchSnippet(params.id as string)
@@ -224,7 +218,7 @@ export default function SnippetViewPage() {
       }}>
         <LoadingSpinner
           size="lg"
-          text={isRetrying ? '处理中...' : '加载中...'}
+          text="加载中..."
           className="text-blue-600"
         />
       </div>
