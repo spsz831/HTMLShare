@@ -39,6 +39,14 @@ export default function SnippetViewPage() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTMLShare Preview</title>
+    <style>
+        /* 基础样式重置，确保正确显示 */
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; line-height: 1.6; }
+        img { max-width: 100%; height: auto; }
+
+        /* 允许外部样式覆盖这些基础样式 */
+    </style>
 </head>
 <body>
     ${content}
@@ -239,7 +247,7 @@ export default function SnippetViewPage() {
             display: 'block',
             backgroundColor: 'white'
           }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation allow-top-navigation"
           title="HTML Preview"
           loading="eager"
           onError={(e) => console.error('Iframe error:', e)}
