@@ -164,8 +164,8 @@ export default function SnippetViewPage() {
 
     const data = await response.json()
 
-    if (!data.success || !data.data) {
-      throw new Error('服务器返回数据格式错误')
+    if (!data.success) {
+      throw new Error(data.error || '服务器返回数据格式错误')
     }
 
     return data.data
