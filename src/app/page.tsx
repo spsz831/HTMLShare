@@ -55,14 +55,14 @@ export default function Home() {
 
     const cleanCode = code.trim()
 
-    // HTML 检测 - 优先级最高（更精确的检测）
+    // HTML 检测 - 优先级最高（包含简单HTML片段）
     if (
         // 完整HTML文档特征 - 最优先
         cleanCode.includes('<!DOCTYPE') ||
         /^<\s*!doctype\s+html/i.test(cleanCode) ||
         /<html[^>]*>[\s\S]*<\/html>/i.test(cleanCode) ||
 
-        // 基本 HTML 结构组合 - 严格检测
+        // 基本 HTML 结构组合
         (cleanCode.includes('<html') && (cleanCode.includes('<head>') || cleanCode.includes('<body>'))) ||
         (cleanCode.includes('<head>') && cleanCode.includes('<body>')) ||
         (cleanCode.includes('<meta') && cleanCode.includes('<title>')) ||
@@ -84,6 +84,24 @@ export default function Home() {
                 cleanCode.includes('<p>') || cleanCode.includes('<ul>') || cleanCode.includes('<ol>') ||
                 cleanCode.includes('<nav') || cleanCode.includes('<aside')
             )
+        ) ||
+
+        // 简单HTML片段检测 - 包含常见HTML标签组合
+        (
+            (cleanCode.includes('<h1') || cleanCode.includes('<h2') || cleanCode.includes('<h3')) &&
+            cleanCode.includes('<p>')
+        ) ||
+        (
+            cleanCode.includes('<button') &&
+            (cleanCode.includes('<h1') || cleanCode.includes('<h2') || cleanCode.includes('<div') || cleanCode.includes('<p>'))
+        ) ||
+        // 单独的HTML标签如果有属性也算HTML
+        (
+            (/<\w+\s+[^>]*>/.test(cleanCode)) || // 带属性的HTML标签
+            (cleanCode.includes('<form') && cleanCode.includes('<input')) ||
+            (cleanCode.includes('<table') && cleanCode.includes('<tr')) ||
+            (cleanCode.includes('<ul') && cleanCode.includes('<li')) ||
+            (cleanCode.includes('<ol') && cleanCode.includes('<li'))
         )
     ) {
       return 'html'
