@@ -4,7 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "outputDirectory": ".next",
-  "public": true,
   "env": {
     "NEXT_PUBLIC_MOCK_MODE": "false",
     "NEXT_PUBLIC_SUPABASE_URL": "https://vwkxyfuczdeqstmpuskb.supabase.co",
