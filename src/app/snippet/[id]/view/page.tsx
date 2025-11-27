@@ -25,6 +25,7 @@ export default function SnippetViewPage() {
   const [renderedContent, setRenderedContent] = useState('')
 
   const renderContent = useCallback((content: string, language: string) => {
+    console.log('Rendering content:', { content, language }) // 调试信息
     try {
       if (language.toLowerCase() === 'html') {
         // 增强HTML渲染 - 禁用DOMPurify以保持完整样式
@@ -124,6 +125,7 @@ export default function SnippetViewPage() {
         }
 
         // 不使用DOMPurify - 保持原始HTML完整性
+        console.log('Setting rendered content length:', enhancedHtml.length) // 调试信息
         setRenderedContent(enhancedHtml)
       } else {
         // 非HTML内容显示提示
@@ -149,6 +151,7 @@ export default function SnippetViewPage() {
         `)
       }
     } catch (error) {
+      console.error('Render error:', error) // 调试信息
       setRenderedContent('<div style="color: red; text-align: center; padding: 50px;">渲染出错</div>')
     }
   }, []) // 移除依赖项以避免无限循环
@@ -198,13 +201,13 @@ export default function SnippetViewPage() {
     if (params.id) {
       fetchSnippet(params.id as string)
     }
-  }, [params.id, fetchSnippet])
+  }, [params.id]) // 移除fetchSnippet依赖
 
   useEffect(() => {
     if (snippet && snippet.content) {
       renderContent(snippet.content, snippet.language)
     }
-  }, [snippet, renderContent])
+  }, [snippet]) // 移除renderContent依赖
 
   if (loading) {
     return (
