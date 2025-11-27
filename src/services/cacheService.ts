@@ -7,8 +7,9 @@ export class CacheService {
   constructor() {
     try {
       this.redis = getRedisClient()
-      if (!this.redis) {
+      if (!this.redis && process.env.NODE_ENV === 'development' && !global.__cacheServiceWarningShown) {
         console.log('ℹ️ 缓存服务启动（内存模式）')
+        global.__cacheServiceWarningShown = true
       }
     } catch (error) {
       console.warn('⚠️ Redis连接失败，使用内存缓存模式:', error)

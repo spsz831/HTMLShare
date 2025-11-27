@@ -17,14 +17,12 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
 
-  // 性能优化配置
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  // 性能优化配置 - 使用新的 turbopack 配置
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },

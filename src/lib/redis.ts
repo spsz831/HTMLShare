@@ -38,7 +38,11 @@ export function createRedisClient(): Redis | null {
 
   // 如果没有配置Redis，则跳过连接
   if (!isRedisConfigured()) {
-    console.log('ℹ️ Redis未配置，使用内存缓存模式')
+    // 只在开发环境中输出详细日志，避免构建时重复输出
+    if (process.env.NODE_ENV === 'development' && !global.__redisWarningShown) {
+      console.log('ℹ️ Redis未配置，使用内存缓存模式')
+      global.__redisWarningShown = true
+    }
     return null
   }
 
