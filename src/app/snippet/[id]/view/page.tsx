@@ -28,35 +28,10 @@ export default function SnippetViewPage() {
     console.log('Rendering content:', { content: content.substring(0, 100), language }) // 调试信息
     try {
       if (language.toLowerCase() === 'html') {
-        // 简化HTML渲染 - 使用最基本的HTML结构
-        let enhancedHtml = content;
-
-        // 如果不是完整的HTML文档，包装成简单的完整文档
-        if (!content.toLowerCase().includes('<!doctype') && !content.toLowerCase().includes('<html')) {
-          enhancedHtml = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTMLShare Preview</title>
-    <style>
-        /* 基础样式重置，确保正确显示 */
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; line-height: 1.6; }
-        img { max-width: 100%; height: auto; }
-
-        /* 允许外部样式覆盖这些基础样式 */
-    </style>
-</head>
-<body>
-    ${content}
-</body>
-</html>`;
-        }
-
-        console.log('Setting rendered content length:', enhancedHtml.length) // 调试信息
-        console.log('Enhanced HTML preview:', enhancedHtml.substring(0, 200)) // 调试信息
-        setRenderedContent(enhancedHtml)
+        // 对于完整的HTML文档，直接使用原始内容
+        console.log('Setting rendered content length:', content.length) // 调试信息
+        console.log('Enhanced HTML preview:', content.substring(0, 200)) // 调试信息
+        setRenderedContent(content)
       } else {
         // 非HTML内容显示提示
         const snippetId = window.location.pathname.split('/')[2] || 'unknown'
@@ -247,7 +222,6 @@ export default function SnippetViewPage() {
             display: 'block',
             backgroundColor: 'white'
           }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals allow-orientation-lock allow-pointer-lock allow-presentation allow-top-navigation-by-user-activation allow-top-navigation"
           title="HTML Preview"
           loading="eager"
           onError={(e) => console.error('Iframe error:', e)}
