@@ -501,15 +501,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Recent Snippets */}
-        <div className="mt-12 text-center">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">最近分享的代码</h3>
-          <div className="text-gray-500 text-sm">
-            <Link href="/recent" className="text-blue-600 hover:underline">
-              查看最近分享的代码片段 →
-            </Link>
-          </div>
-        </div>
       </main>
 
       {/* Footer */}
