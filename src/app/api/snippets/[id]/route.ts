@@ -64,16 +64,16 @@ export const GET = withCompression(withErrorHandling(async (
     return ApiResponseBuilder.error(errorMessage, statusCode)
   }
 
-  // 增加浏览数（通过share_logs表触发器自动完成）
-  await supabase
-    .from('share_logs')
-    .insert([{
-      snippet_id: id,
-      user_id: null, // 匿名访问
-      ip_address: null,
-      user_agent: request.headers.get('user-agent') || null,
-      referrer: request.headers.get('referer') || null
-    }])
+  // 增加浏览数 - 简化版本，直接更新计数
+  try {
+    await supabase
+      .from('snippets')
+      .update({ view_count: snippet.view_count + 1 })
+      .eq('id', id)
+  } catch (updateError) {
+    // 忽略浏览计数更新错误，不影响主要功能
+    console.warn('Failed to update view count:', updateError)
+  }
 
   return ApiResponseBuilder.success(snippet, '获取代码片段成功')
 }))
