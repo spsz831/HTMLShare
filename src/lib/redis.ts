@@ -1,6 +1,12 @@
 import Redis from 'ioredis'
 
 let redis: Redis | null = null
+let redisEnabled = false
+
+// 检查Redis是否可用
+function isRedisConfigured(): boolean {
+  return Boolean(process.env.REDIS_URL || process.env.REDIS_HOST)
+}
 
 // Redis 配置
 const redisConfig = {
@@ -9,42 +15,70 @@ const redisConfig = {
   password: process.env.REDIS_PASSWORD,
   db: parseInt(process.env.REDIS_DB || '0'),
   retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: 2,
+  retryDelayOnClusterDown: 300,
   lazyConnect: true,
-  connectTimeout: 10000,
-  commandTimeout: 5000,
+  connectTimeout: 5000,
+  commandTimeout: 3000,
+  // 禁用自动重连以避免开发环境的连接问题
+  retryPolicy: (times: number) => {
+    if (times > 3) {
+      console.warn('⚠️ Redis连接失败，禁用缓存功能')
+      return null // 停止重试
+    }
+    return Math.min(times * 50, 2000)
+  }
 }
 
 // 创建Redis连接
-export function createRedisClient(): Redis {
+export function createRedisClient(): Redis | null {
   if (redis) {
     return redis
   }
 
-  redis = new Redis(redisConfig)
+  // 如果没有配置Redis，则跳过连接
+  if (!isRedisConfigured()) {
+    console.log('ℹ️ Redis未配置，使用内存缓存模式')
+    return null
+  }
 
-  // 连接事件监听
-  redis.on('connect', () => {
-    console.log('✅ Redis connected')
-  })
+  try {
+    redis = new Redis(redisConfig)
 
-  redis.on('error', (err) => {
-    console.error('❌ Redis connection error:', err)
-  })
+    // 连接事件监听
+    redis.on('connect', () => {
+      console.log('✅ Redis connected')
+      redisEnabled = true
+    })
 
-  redis.on('close', () => {
-    console.warn('⚠️ Redis connection closed')
-  })
+    redis.on('error', (err) => {
+      console.error('❌ Redis connection error:', err)
+      redisEnabled = false
+    })
 
-  redis.on('reconnecting', (delay: number) => {
-    console.log(`🔄 Redis reconnecting in ${delay}ms`)
-  })
+    redis.on('close', () => {
+      console.warn('⚠️ Redis connection closed')
+      redisEnabled = false
+    })
 
-  return redis
+    redis.on('reconnecting', (delay: number) => {
+      console.log(`🔄 Redis reconnecting in ${delay}ms`)
+    })
+
+    return redis
+  } catch (error) {
+    console.error('Failed to create Redis client:', error)
+    return null
+  }
 }
 
 // 获取Redis客户端
 export function getRedisClient(): Redis | null {
+  if (!redisEnabled && redis) {
+    // 如果Redis连接失败，返回null
+    return null
+  }
+
   if (!redis) {
     try {
       return createRedisClient()

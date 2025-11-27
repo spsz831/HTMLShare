@@ -5,7 +5,15 @@ export class CacheService {
   private redis: Redis | null
 
   constructor() {
-    this.redis = getRedisClient()
+    try {
+      this.redis = getRedisClient()
+      if (!this.redis) {
+        console.log('ℹ️ 缓存服务启动（内存模式）')
+      }
+    } catch (error) {
+      console.warn('⚠️ Redis连接失败，使用内存缓存模式:', error)
+      this.redis = null
+    }
   }
 
   // 通用缓存方法
