@@ -49,7 +49,7 @@ export default function RecentPage() {
     return data.data || []
   }
 
-  const { retry, isRetrying } = useRetry(fetchRecentSnippetsRequest, 3, 1500)
+  const { retry, isRetrying } = useRetry(fetchRecentSnippetsRequest, 2, 3000)
 
   const fetchRecentSnippets = useCallback(async () => {
     const startTime = performance.now()

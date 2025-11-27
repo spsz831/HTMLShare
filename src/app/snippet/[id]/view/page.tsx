@@ -127,12 +127,13 @@ export default function SnippetViewPage() {
         setRenderedContent(enhancedHtml)
       } else {
         // 非HTML内容显示提示
+        const snippetId = window.location.pathname.split('/')[2] || 'unknown'
         setRenderedContent(`
           <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: system-ui, sans-serif; background: #f8f9fa;">
             <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
               <h2 style="color: #333; margin-bottom: 16px;">此内容类型不支持纯渲染模式</h2>
               <p style="color: #666; margin-bottom: 24px;">仅支持 HTML 内容的纯渲染展示</p>
-              <a href="/snippet/${params.id}" style="
+              <a href="/snippet/${snippetId}" style="
                 display: inline-block;
                 padding: 12px 24px;
                 background: #007bff;
@@ -150,7 +151,7 @@ export default function SnippetViewPage() {
     } catch (error) {
       setRenderedContent('<div style="color: red; text-align: center; padding: 50px;">渲染出错</div>')
     }
-  }, [params.id]) // useCallback结束
+  }, []) // 移除依赖项以避免无限循环
 
   // 获取代码片段的核心请求逻辑（用于重试）
   const fetchSnippetRequest = async () => {
@@ -171,7 +172,7 @@ export default function SnippetViewPage() {
     return data.data
   }
 
-  const { retry, isRetrying } = useRetry(fetchSnippetRequest, 3, 1500)
+  const { retry, isRetrying } = useRetry(fetchSnippetRequest, 2, 3000)
 
   const fetchSnippet = useCallback(async (id: string) => {
     try {

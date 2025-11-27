@@ -75,8 +75,8 @@ export default function RetryableError({
 
 export function useRetry<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
+  maxRetries: number = 2,
+  delay: number = 3000
 ) {
   const [isRetrying, setIsRetrying] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
@@ -98,8 +98,8 @@ export function useRetry<T>(
           throw error
         }
 
-        // 指数退避延迟
-        const retryDelay = delay * Math.pow(2, attempt)
+        // 更长的指数退避延迟 - 减少服务器压力
+        const retryDelay = delay * Math.pow(1.5, attempt)
         await new Promise(resolve => setTimeout(resolve, retryDelay))
       }
     }
