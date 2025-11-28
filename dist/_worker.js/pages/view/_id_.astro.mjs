@@ -6,6 +6,136 @@ import { g as getCacheService } from '../../chunks/cache_vhvYp1Vm.mjs';
 import { S as SecurityService } from '../../chunks/security_bCJkZ78V.mjs';
 export { renderers } from '../../renderers.mjs';
 
+class HTMLProcessor {
+  /**
+   * Process HTML content for optimal rendering
+   */
+  static processHTML(content) {
+    let processed = content.trim();
+    if (!processed.toLowerCase().startsWith("<!doctype")) {
+      processed = "<!DOCTYPE html>\n" + processed;
+    }
+    const hasHtmlTag = /<html[\s>]/i.test(processed);
+    if (!hasHtmlTag) {
+      processed = this.wrapPartialHTML(processed);
+    } else {
+      processed = this.enhanceCompleteHTML(processed);
+    }
+    return processed;
+  }
+  /**
+   * Wrap partial HTML content in a complete document structure
+   */
+  static wrapPartialHTML(content) {
+    return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTMLShare - 共享页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+${content}
+</body>
+</html>`;
+  }
+  /**
+   * Enhance complete HTML document
+   */
+  static enhanceCompleteHTML(content) {
+    let enhanced = content;
+    if (!enhanced.toLowerCase().includes("<meta charset")) {
+      const headMatch = enhanced.match(/<head[^>]*>/i);
+      if (headMatch) {
+        const insertPos = headMatch.index + headMatch[0].length;
+        enhanced = enhanced.slice(0, insertPos) + '\n    <meta charset="UTF-8">' + enhanced.slice(insertPos);
+      }
+    }
+    if (!enhanced.toLowerCase().includes("viewport")) {
+      const headMatch = enhanced.match(/<head[^>]*>/i);
+      if (headMatch) {
+        const insertPos = headMatch.index + headMatch[0].length;
+        enhanced = enhanced.slice(0, insertPos) + '\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">' + enhanced.slice(insertPos);
+      }
+    }
+    if (!enhanced.toLowerCase().includes("<link") && !enhanced.toLowerCase().includes("<style")) {
+      const headCloseMatch = enhanced.match(/<\/head>/i);
+      if (headCloseMatch) {
+        const basicStyles = `
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    </style>`;
+        enhanced = enhanced.slice(0, headCloseMatch.index) + basicStyles + enhanced.slice(headCloseMatch.index);
+      }
+    }
+    return enhanced;
+  }
+  /**
+   * Sanitize HTML while preserving layout
+   */
+  static sanitizeForDisplay(content) {
+    let sanitized = content;
+    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+    sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, "");
+    sanitized = sanitized.replace(/\son\w+\s*=\s*[^>\s]+/gi, "");
+    sanitized = sanitized.replace(/javascript\s*:/gi, "");
+    return sanitized;
+  }
+}
+
 const $$Astro = createAstro();
 const $$id = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
@@ -95,23 +225,8 @@ const $$id = createComponent(async ($$result, $$props, $$slots) => {
   headers.set("Content-Security-Policy", SecurityService.getCSPHeader());
   headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
   headers.set("Cross-Origin-Opener-Policy", "unsafe-none");
-  let processedContent = pageData.content;
-  if (!processedContent.trim().toLowerCase().startsWith("<!doctype")) {
-    processedContent = "<!DOCTYPE html>\n" + processedContent;
-  }
-  if (!processedContent.toLowerCase().includes("<meta charset") && !processedContent.toLowerCase().includes('<meta http-equiv="content-type"')) {
-    const headTagMatch = processedContent.match(/<head[^>]*>/i);
-    if (headTagMatch) {
-      const headEndIndex = processedContent.indexOf(">", headTagMatch.index) + 1;
-      processedContent = processedContent.slice(0, headEndIndex) + '\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' + processedContent.slice(headEndIndex);
-    } else if (processedContent.toLowerCase().includes("<html")) {
-      const htmlTagMatch = processedContent.match(/<html[^>]*>/i);
-      if (htmlTagMatch) {
-        const htmlEndIndex = processedContent.indexOf(">", htmlTagMatch.index) + 1;
-        processedContent = processedContent.slice(0, htmlEndIndex) + '\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n</head>\n' + processedContent.slice(htmlEndIndex);
-      }
-    }
-  }
+  let processedContent = HTMLProcessor.processHTML(pageData.content);
+  processedContent = HTMLProcessor.sanitizeForDisplay(processedContent);
   return new Response(processedContent, {
     status: 200,
     headers

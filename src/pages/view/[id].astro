@@ -5,6 +5,7 @@
 import { DatabaseService, getDatabase } from '../../lib/database';
 import { getCacheService } from '../../lib/cache';
 import { SecurityService } from '../../lib/security';
+import { HTMLProcessor } from '../../lib/htmlProcessor';
 
 const { id } = Astro.params;
 
@@ -110,35 +111,11 @@ headers.set('Content-Security-Policy', SecurityService.getCSPHeader());
 headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
 headers.set('Cross-Origin-Opener-Policy', 'unsafe-none');
 
-// Process HTML content to ensure better rendering
-let processedContent = pageData.content;
+// Process HTML content with enhanced processor for better rendering
+let processedContent = HTMLProcessor.processHTML(pageData.content);
 
-// Ensure the HTML has proper DOCTYPE if missing
-if (!processedContent.trim().toLowerCase().startsWith('<!doctype')) {
-  processedContent = '<!DOCTYPE html>\n' + processedContent;
-}
-
-// Add meta tags for better rendering if HTML doesn't have proper head section
-if (!processedContent.toLowerCase().includes('<meta charset') && !processedContent.toLowerCase().includes('<meta http-equiv="content-type"')) {
-  // Find head tag or create one
-  const headTagMatch = processedContent.match(/<head[^>]*>/i);
-  if (headTagMatch) {
-    // Insert after opening head tag
-    const headEndIndex = processedContent.indexOf('>', headTagMatch.index) + 1;
-    processedContent = processedContent.slice(0, headEndIndex) +
-      '\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-      processedContent.slice(headEndIndex);
-  } else if (processedContent.toLowerCase().includes('<html')) {
-    // Insert after html tag
-    const htmlTagMatch = processedContent.match(/<html[^>]*>/i);
-    if (htmlTagMatch) {
-      const htmlEndIndex = processedContent.indexOf('>', htmlTagMatch.index) + 1;
-      processedContent = processedContent.slice(0, htmlEndIndex) +
-        '\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n</head>\n' +
-        processedContent.slice(htmlEndIndex);
-    }
-  }
-}
+// Apply additional sanitization for security
+processedContent = HTMLProcessor.sanitizeForDisplay(processedContent);
 
 // Directly return the processed HTML content
 // This approach ensures external resources can load properly

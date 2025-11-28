@@ -206,8 +206,41 @@ import Layout from '../layouts/Layout.astro';
 
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
-        console.log('Copied to clipboard');
+        // Show success toast
+        showToast('✅ 链接已复制到剪贴板');
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('✅ 链接已复制到剪贴板');
       });
+    }
+
+    function showToast(message) {
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300';
+      toast.textContent = message;
+      toast.style.transform = 'translateX(100%)';
+
+      document.body.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 10);
+
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
     }
   </script>
 </Layout>
