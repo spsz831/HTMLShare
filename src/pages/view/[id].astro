@@ -2,11 +2,7 @@
 // src/pages/view/[id].astro - Direct HTML rendering page
 // This page directly renders user HTML content without iframe
 
-export async function getStaticPaths() {
-  // For static generation, return empty paths
-  // Dynamic routes will be handled at runtime
-  return [];
-}
+import { DatabaseService } from '../../lib/database';
 
 const { id } = Astro.params;
 
@@ -24,17 +20,12 @@ if (!db) {
 // Fetch page content
 let pageData = null;
 try {
-  const result = await db.prepare(`
-    SELECT * FROM pages WHERE url_id = ?
-  `).bind(id).first();
+  const dbService = new DatabaseService(db);
+  pageData = await dbService.getPageByUrlId(id as string);
 
-  if (result) {
+  if (pageData) {
     // Increment view count
-    await db.prepare(`
-      UPDATE pages SET view_count = view_count + 1 WHERE url_id = ?
-    `).bind(id).run();
-
-    pageData = result;
+    await dbService.incrementViewCount(id as string);
   }
 } catch (error) {
   console.error('Database error:', error);

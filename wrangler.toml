@@ -1,17 +1,23 @@
-name = "htmlshare-astro"
-compatibility_date = "2024-01-01"
+name = "htmlshare"
+compatibility_date = "2024-11-28"
 
-# Local development database
-[[d1_databases]]
-binding = "DB"
-database_name = "htmlshare-db"
-database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"
+[[kv_namespaces]]
+binding = "SESSION"
+preview_id = "TBD"
+id = "TBD"
 
-[env.production.vars]
-ENVIRONMENT = "production"
+[env.production]
+name = "htmlshare"
 
-# Production database
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "htmlshare-db"
-database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"
+database_id = "TBD"
+
+[[env.production.kv_namespaces]]
+binding = "SESSION"
+preview_id = "TBD"
+id = "TBD"
+
+[build]
+command = "npm run build"

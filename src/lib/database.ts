@@ -60,8 +60,19 @@ export class DatabaseService {
     return this.getPageByUrlId(urlId);
   }
 
-  // Get page by URL ID
+  // Get page by URL ID (without incrementing view count)
   async getPageByUrlId(urlId: string): Promise<PageData | null> {
+    const result = await this.db.prepare(`
+      SELECT * FROM pages WHERE url_id = ?
+    `).bind(urlId).first();
+
+    if (!result) return null;
+
+    return result as PageData;
+  }
+
+  // Get page by URL ID and increment view count
+  async getPageByUrlIdAndIncrement(urlId: string): Promise<PageData | null> {
     const result = await this.db.prepare(`
       SELECT * FROM pages WHERE url_id = ?
     `).bind(urlId).first();
@@ -74,6 +85,15 @@ export class DatabaseService {
     `).bind(urlId).run();
 
     return result as PageData;
+  }
+
+  // Increment view count for a page
+  async incrementViewCount(urlId: string): Promise<boolean> {
+    const result = await this.db.prepare(`
+      UPDATE pages SET view_count = view_count + 1 WHERE url_id = ?
+    `).bind(urlId).run();
+
+    return result.success;
   }
 
   // Get recent public pages
