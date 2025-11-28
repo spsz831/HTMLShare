@@ -1,68 +1,43 @@
-// src/lib/htmlProcessor.ts - Enhanced HTML processing for better rendering
+// src/lib/htmlProcessor.ts - Conservative HTML processing to preserve user styles
 export class HTMLProcessor {
   /**
-   * Process HTML content for optimal rendering
+   * Process HTML content with minimal interference
    */
   static processHTML(content: string): string {
     let processed = content.trim();
 
-    // Ensure proper DOCTYPE
+    // Only ensure DOCTYPE for documents that don't have one
     if (!processed.toLowerCase().startsWith('<!doctype')) {
-      processed = '<!DOCTYPE html>\n' + processed;
+      // Check if this looks like a complete HTML document
+      const hasHtmlTag = /<html[\s>]/i.test(processed);
+
+      if (hasHtmlTag) {
+        // Add DOCTYPE to complete documents only
+        processed = '<!DOCTYPE html>\n' + processed;
+      } else {
+        // For fragments, wrap minimally
+        processed = this.wrapHTMLFragment(processed);
+      }
     }
 
-    // Check if it's a complete HTML document
-    const hasHtmlTag = /<html[\s>]/i.test(processed);
-    const hasHeadTag = /<head[\s>]/i.test(processed);
-    const hasBodyTag = /<body[\s>]/i.test(processed);
-
-    if (!hasHtmlTag) {
-      // Not a complete HTML document, wrap it
-      processed = this.wrapPartialHTML(processed);
-    } else {
-      // Complete HTML document, enhance it
-      processed = this.enhanceCompleteHTML(processed);
+    // For complete HTML documents, only add essential meta tags if missing
+    if (/<html[\s>]/i.test(processed)) {
+      processed = this.addEssentialMetaTags(processed);
     }
 
     return processed;
   }
 
   /**
-   * Wrap partial HTML content in a complete document structure
+   * Wrap HTML fragments with minimal document structure
    */
-  private static wrapPartialHTML(content: string): string {
+  private static wrapHTMLFragment(content: string): string {
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTMLShare - 共享页面</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        pre {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            background: #f5f5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-    </style>
+    <title>HTMLShare</title>
 </head>
 <body>
 ${content}
@@ -71,12 +46,12 @@ ${content}
   }
 
   /**
-   * Enhance complete HTML document
+   * Add only essential meta tags without interfering with user styles
    */
-  private static enhanceCompleteHTML(content: string): string {
+  private static addEssentialMetaTags(content: string): string {
     let enhanced = content;
 
-    // Add charset if missing
+    // Add charset only if missing
     if (!enhanced.toLowerCase().includes('<meta charset')) {
       const headMatch = enhanced.match(/<head[^>]*>/i);
       if (headMatch) {
@@ -87,7 +62,7 @@ ${content}
       }
     }
 
-    // Add viewport if missing
+    // Add viewport only if missing
     if (!enhanced.toLowerCase().includes('viewport')) {
       const headMatch = enhanced.match(/<head[^>]*>/i);
       if (headMatch) {
@@ -98,65 +73,21 @@ ${content}
       }
     }
 
-    // Add basic responsive styles if no external CSS
-    if (!enhanced.toLowerCase().includes('<link') && !enhanced.toLowerCase().includes('<style')) {
-      const headCloseMatch = enhanced.match(/<\/head>/i);
-      if (headCloseMatch) {
-        const basicStyles = `
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            background: #fff;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
-        pre {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            background: #f5f5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-    </style>`;
-        enhanced = enhanced.slice(0, headCloseMatch.index!) +
-          basicStyles +
-          enhanced.slice(headCloseMatch.index!);
-      }
-    }
+    // DO NOT add any default styles - preserve user's original styling completely
 
     return enhanced;
   }
 
   /**
-   * Sanitize HTML while preserving layout
+   * Light sanitization that preserves layout and styles
    */
   static sanitizeForDisplay(content: string): string {
-    // More gentle sanitization for display
     let sanitized = content;
 
-    // Remove script tags but preserve other content
+    // Only remove truly dangerous content
     sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-
-    // Remove dangerous event handlers but preserve other attributes
     sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '');
     sanitized = sanitized.replace(/\son\w+\s*=\s*[^>\s]+/gi, '');
-
-    // Remove javascript: protocols
     sanitized = sanitized.replace(/javascript\s*:/gi, '');
 
     return sanitized;

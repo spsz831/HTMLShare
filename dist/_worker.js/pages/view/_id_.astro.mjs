@@ -8,57 +8,33 @@ export { renderers } from '../../renderers.mjs';
 
 class HTMLProcessor {
   /**
-   * Process HTML content for optimal rendering
+   * Process HTML content with minimal interference
    */
   static processHTML(content) {
     let processed = content.trim();
     if (!processed.toLowerCase().startsWith("<!doctype")) {
-      processed = "<!DOCTYPE html>\n" + processed;
+      const hasHtmlTag = /<html[\s>]/i.test(processed);
+      if (hasHtmlTag) {
+        processed = "<!DOCTYPE html>\n" + processed;
+      } else {
+        processed = this.wrapHTMLFragment(processed);
+      }
     }
-    const hasHtmlTag = /<html[\s>]/i.test(processed);
-    if (!hasHtmlTag) {
-      processed = this.wrapPartialHTML(processed);
-    } else {
-      processed = this.enhanceCompleteHTML(processed);
+    if (/<html[\s>]/i.test(processed)) {
+      processed = this.addEssentialMetaTags(processed);
     }
     return processed;
   }
   /**
-   * Wrap partial HTML content in a complete document structure
+   * Wrap HTML fragments with minimal document structure
    */
-  static wrapPartialHTML(content) {
+  static wrapHTMLFragment(content) {
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTMLShare - 共享页面</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        pre {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            background: #f5f5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-    </style>
+    <title>HTMLShare</title>
 </head>
 <body>
 ${content}
@@ -66,9 +42,9 @@ ${content}
 </html>`;
   }
   /**
-   * Enhance complete HTML document
+   * Add only essential meta tags without interfering with user styles
    */
-  static enhanceCompleteHTML(content) {
+  static addEssentialMetaTags(content) {
     let enhanced = content;
     if (!enhanced.toLowerCase().includes("<meta charset")) {
       const headMatch = enhanced.match(/<head[^>]*>/i);
@@ -84,47 +60,10 @@ ${content}
         enhanced = enhanced.slice(0, insertPos) + '\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">' + enhanced.slice(insertPos);
       }
     }
-    if (!enhanced.toLowerCase().includes("<link") && !enhanced.toLowerCase().includes("<style")) {
-      const headCloseMatch = enhanced.match(/<\/head>/i);
-      if (headCloseMatch) {
-        const basicStyles = `
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            background: #fff;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
-        pre {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-        }
-        code {
-            background: #f5f5f5;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-    </style>`;
-        enhanced = enhanced.slice(0, headCloseMatch.index) + basicStyles + enhanced.slice(headCloseMatch.index);
-      }
-    }
     return enhanced;
   }
   /**
-   * Sanitize HTML while preserving layout
+   * Light sanitization that preserves layout and styles
    */
   static sanitizeForDisplay(content) {
     let sanitized = content;
