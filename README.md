@@ -1,155 +1,194 @@
-# 🚀 HTMLShare v2.0
+# HTMLShare
 
-一个现代化的HTML代码分享平台，基于Astro框架和Cloudflare基础设施构建。
+> 一个简单、快速的HTML分享工具
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Astro](https://img.shields.io/badge/Astro-5.0+-orange.svg)](https://astro.build)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-D1-blue.svg)](https://www.cloudflare.com)
 
 ## ✨ 特性
 
-- 🔗 **即时分享**: 快速生成HTML代码的分享链接
-- 🎨 **直接渲染**: 无iframe限制，完美支持CSS样式和JavaScript
-- 🌍 **全球加速**: 基于Cloudflare全球CDN，访问速度极快
-- 🛡️ **安全防护**: 内置XSS过滤和内容安全策略
-- 📱 **响应式设计**: 完美支持移动端和桌面端
-- ⚡ **极致性能**: Astro SSR + 边缘计算，3.4倍速度提升
+- 🚀 **快速分享** - 粘贴HTML代码，一键生成分享链接
+- 📁 **文件上传** - 支持直接上传HTML文件
+- 🔗 **唯一链接** - 自动生成随机、安全的分享URL
+- 🌐 **无需注册** - 免费使用，无需账户
+- ⚡ **边缘部署** - 基于Cloudflare Pages，全球加速
+- 🛡️ **基础安全** - 自动过滤危险脚本标签
 
-## 🏗️ 技术栈
+## 🛠️ 技术栈
 
-- **前端框架**: Astro (Server-Side Rendering)
-- **部署平台**: Cloudflare Pages
-- **数据库**: Cloudflare D1 (SQLite边缘数据库)
-- **样式**: Tailwind CSS
-- **开发语言**: TypeScript
+- **前端框架**: [Astro](https://astro.build/) - 现代静态站点生成器
+- **样式**: [Tailwind CSS](https://tailwindcss.com/) - 原子化CSS框架
+- **数据库**: [Cloudflare D1](https://developers.cloudflare.com/d1/) - SQLite边缘数据库
+- **部署**: [Cloudflare Pages](https://pages.cloudflare.com/) - 边缘部署平台
+- **语言**: TypeScript
 
-## 🚀 快速开始
+## 🚀 在线使用
 
-### 开发环境
+访问 [HTMLShare](https://your-domain.pages.dev) 开始使用：
+
+1. **粘贴HTML代码** 或 **上传HTML文件**
+2. 点击 **生成链接** 按钮
+3. **分享生成的URL** 给他人
+
+## 💻 本地开发
+
+### 前置要求
+
+- Node.js 18+
+- npm/yarn/pnpm
+
+### 安装步骤
 
 ```bash
+# 克隆仓库
+git clone https://github.com/spsz831/HTMLShare.git
+cd HTMLShare
+
 # 安装依赖
 npm install
 
 # 启动开发服务器
 npm run dev
-
-# 构建生产版本
-npm run build
 ```
 
-### 本地数据库
+访问 `http://localhost:3000` 查看应用。
 
-```bash
-# 创建本地D1数据库
-npx wrangler d1 create htmlshare-db
-
-# 运行数据库迁移
-npx wrangler d1 execute htmlshare-db --file=./schema.sql
-```
-
-### 部署
-
-```bash
-# 部署到Cloudflare Pages
-npx wrangler pages deploy dist
-```
-
-## 🎯 MCP (Model Context Protocol) 集成
-
-本项目支持Claude Code的MCP功能，实现智能代码管理和自动化部署：
-
-### 🔧 支持的MCP操作
-
-- **📊 项目分析**: 自动分析代码结构和依赖关系
-- **🏗️ 架构迁移**: 智能迁移技术栈和部署平台
-- **📦 依赖管理**: 自动更新和优化项目依赖
-- **🚀 自动部署**: 一键部署到Cloudflare平台
-- **🧹 代码清理**: 智能清理无用文件和优化代码结构
-- **🔍 问题诊断**: 自动发现和修复常见问题
-
-### 🤖 Claude Code命令示例
-
-在Claude Code中可以使用以下命令：
-
-```bash
-# 项目健康检查
-@claude 分析项目结构和性能
-
-# 依赖更新
-@claude 更新项目依赖并优化配置
-
-# 自动部署
-@claude 部署到Cloudflare Pages
-
-# 代码优化
-@claude 优化代码结构和性能
-
-# 问题诊断
-@claude 诊断并修复项目问题
-```
-
-## 📁 项目结构
+### 项目结构
 
 ```
 HTMLShare/
 ├── src/
 │   ├── pages/
-│   │   ├── api/           # API端点
-│   │   ├── view/          # 页面渲染
-│   │   └── index.astro    # 首页
+│   │   ├── api/           # API路由
+│   │   ├── view/          # HTML查看页面
+│   │   ├── index.astro    # 主页
+│   │   └── demo.astro     # 演示页面
 │   ├── lib/
 │   │   └── database.ts    # 数据库服务
-│   └── components/        # 组件库
-├── public/               # 静态资源
-├── wrangler.toml        # Cloudflare配置
-└── schema.sql           # 数据库架构
+│   └── styles/            # 样式文件
+├── public/                # 静态资源
+├── schema.sql            # 数据库模式
+└── wrangler.toml         # Cloudflare配置
 ```
 
-## 🌐 部署状态
+## 🌐 部署到Cloudflare
 
-- **生产环境**: https://htmlshare.pages.dev
-- **状态**: ✅ 在线运行
-- **性能**: 首页加载 < 300ms
-- **可用性**: 99.9%+
+### 1. 创建D1数据库
 
-## 📊 性能对比
+```bash
+# 创建数据库
+npm run db:create
 
-| 指标 | v1.0 (旧架构) | v2.0 (新架构) | 提升 |
-|------|---------------|---------------|------|
-| 首页加载 | 800ms | 235ms | 3.4x ⚡ |
-| 构建时间 | 45s | 15s | 3x ⚡ |
-| 部署成本 | $20/月 | 免费 | 100% 💰 |
-| 维护复杂度 | 高 | 低 | -70% 🛠️ |
+# 应用数据库模式
+npm run db:migrate
+```
 
-## 🔗 API端点
+### 2. 配置环境
 
-### 创建页面
-```javascript
+更新 `wrangler.toml` 中的数据库ID：
+
+```toml
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "htmlshare-db"
+database_id = "your-database-id"
+```
+
+### 3. 部署应用
+
+```bash
+# 构建并部署
+npm run deploy
+```
+
+## 📡 API接口
+
+### 创建分享
+
+```http
 POST /api/pages
+Content-Type: application/json
+
 {
-  "content": "<h1>Hello World</h1>",
-  "title": "我的HTML",
-  "description": "描述信息"
+  "title": "页面标题",
+  "content": "<!DOCTYPE html><html>...</html>",
+  "description": "页面描述（可选）"
 }
 ```
 
-### 获取页面信息
-```javascript
-GET /api/pages/{id}
+**响应:**
+```json
+{
+  "success": true,
+  "data": {
+    "url_id": "abc123xyz",
+    "title": "页面标题",
+    "description": "页面描述",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+}
 ```
 
-### 页面渲染
-```javascript
-GET /view/{id}
+### 获取页面列表
+
+```http
+GET /api/pages?limit=10
 ```
 
-## 🔗 相关链接
+### 查看分享页面
 
-- **GitHub**: https://github.com/spsz831/HTMLShare
-- **部署地址**: https://htmlshare.pages.dev
-- **技术文档**: 详见代码注释
+```http
+GET /view/{url_id}
+```
 
-## 📄 许可证
+## 🔧 配置说明
 
-MIT License - 详见 [LICENSE](./LICENSE) 文件。
+### 环境变量
+
+创建 `.env.local` 文件：
+
+```bash
+# 开发环境配置
+NODE_ENV=development
+PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 数据库架构
+
+```sql
+CREATE TABLE pages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  url_id TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  language TEXT DEFAULT 'html',
+  description TEXT,
+  view_count INTEGER DEFAULT 0,
+  is_public BOOLEAN DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🤝 贡献
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开Pull Request
+
+## 📝 许可证
+
+本项目基于 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- [Astro](https://astro.build/) - 出色的静态站点生成器
+- [Cloudflare](https://cloudflare.com/) - 强大的边缘计算平台
+- [Tailwind CSS](https://tailwindcss.com/) - 优秀的CSS框架
 
 ---
 
-⚡ **由Claude Code驱动的现代化HTML分享平台** ⚡
+⭐ 如果这个项目对你有帮助，请给它一个星标！

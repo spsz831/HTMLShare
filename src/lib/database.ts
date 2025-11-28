@@ -1,18 +1,8 @@
-// Updated database service with proper JSDOM integration
+// src/lib/database.ts - Database service for Cloudflare D1
+import type { D1Database } from '@cloudflare/workers-types';
 import CryptoJS from 'crypto-js';
 
-// Define D1Database interface for TypeScript
-interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-}
-
-interface D1PreparedStatement {
-  bind(...values: any[]): D1PreparedStatement;
-  first(): Promise<any>;
-  all(): Promise<{ results: any[]; success: boolean; meta: any }>;
-  run(): Promise<{ success: boolean; meta: any }>;
-}
-
+// Page data interface
 export interface PageData {
   id?: number;
   url_id: string;
@@ -31,6 +21,12 @@ export function generateUrlId(content: string): string {
   const timestamp = Date.now().toString();
   const hash = CryptoJS.MD5(content + timestamp).toString();
   return hash.substring(0, 12); // 12 character unique ID
+}
+
+// Get database instance - Cloudflare D1 only
+export function getDatabase(locals?: any): D1Database | null {
+  // Get database from Cloudflare runtime
+  return locals?.runtime?.env?.DB || null;
 }
 
 // Database operations for Cloudflare D1

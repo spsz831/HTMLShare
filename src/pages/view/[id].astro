@@ -2,7 +2,7 @@
 // src/pages/view/[id].astro - Direct HTML rendering page
 // This page directly renders user HTML content without iframe
 
-import { DatabaseService } from '../../lib/database';
+import { DatabaseService, getDatabase } from '../../lib/database';
 
 const { id } = Astro.params;
 
@@ -10,8 +10,8 @@ if (!id) {
   return Astro.redirect('/');
 }
 
-// Get database from Cloudflare env
-const db = Astro.locals?.runtime?.env?.DB;
+// Get database from Cloudflare environment
+const db = getDatabase(Astro.locals);
 
 if (!db) {
   return new Response('Database not available', { status: 500 });

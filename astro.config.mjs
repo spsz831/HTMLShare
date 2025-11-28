@@ -1,11 +1,14 @@
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
+import cloudflare from '@astrojs/cloudflare';
 import tailwind from '@astrojs/tailwind';
 
+// https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: node({
-    mode: 'standalone'
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true
+    }
   }),
   integrations: [tailwind()],
   server: {

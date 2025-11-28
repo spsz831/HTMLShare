@@ -1,6 +1,6 @@
 // src/pages/api/pages/[id].ts - API endpoint for getting specific page
 import type { APIRoute } from 'astro';
-import { DatabaseService } from '../../../lib/database';
+import { DatabaseService, getDatabase } from '../../../lib/database';
 
 export const GET: APIRoute = async ({ params, locals }) => {
   try {
@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
       });
     }
 
-    const db = locals?.runtime?.env?.DB;
+    const db = getDatabase(locals);
 
     if (!db) {
       return new Response(JSON.stringify({

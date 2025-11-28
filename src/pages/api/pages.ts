@@ -1,23 +1,12 @@
 // src/pages/api/pages.ts - API endpoint for creating pages
 import type { APIRoute } from 'astro';
-import { DatabaseService, generateUrlId } from '../../lib/database';
+import { DatabaseService, generateUrlId, getDatabase } from '../../lib/database';
 import type { PageData } from '../../lib/database';
-import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
-
-// Create DOMPurify instance for server-side sanitization
-const window = new JSDOM('').window;
-// @ts-ignore
-global.window = window;
-// @ts-ignore
-global.document = window.document;
-
-const purify = DOMPurify(window);
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Get database from Cloudflare runtime
-    const db = locals?.runtime?.env?.DB;
+    // Get database - Cloudflare D1 only
+    const db = getDatabase(locals);
 
     if (!db) {
       return new Response(JSON.stringify({
@@ -42,8 +31,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
-    // Sanitize HTML content (optional but recommended)
+    // Basic sanitization (remove script tags for security)
     let sanitizedContent = data.content.trim();
+
+    // Basic security: remove script tags
+    sanitizedContent = sanitizedContent
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+="[^"]*"/gi, '')
+      .replace(/on\w+='[^']*'/gi, '');
 
     // Basic HTML validation
     if (!sanitizedContent.includes('<') && !sanitizedContent.includes('>')) {
@@ -101,7 +97,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
 export const GET: APIRoute = async ({ url, locals }) => {
   try {
-    const db = locals?.runtime?.env?.DB;
+    const db = getDatabase(locals);
 
     if (!db) {
       return new Response(JSON.stringify({
