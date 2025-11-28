@@ -1,22 +1,17 @@
-name = "htmlshare"
-compatibility_date = "2024-11-28"
-compatibility_flags = ["nodejs_compat"]
+name = "htmlshare-astro"
+compatibility_date = "2024-01-01"
 
-# Cloudflare Pages 配置
-pages_build_output_dir = ".next"
+# Local development database
+[[d1_databases]]
+binding = "DB"
+database_name = "htmlshare-db"
+database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"
 
-[env.production]
-name = "htmlshare-production"
+[env.production.vars]
+ENVIRONMENT = "production"
 
-[env.preview]
-name = "htmlshare-preview"
-
-# 环境变量（在Cloudflare Dashboard中配置）
-[vars]
-NODE_ENV = "production"
-
-# 如果使用Cloudflare D1数据库
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "htmlshare-db"
-# database_id = "your-database-id"
+# Production database
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "htmlshare-db"
+database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"

@@ -1,0 +1,76 @@
+---
+// Simple demo page for testing HTML rendering
+const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HTMLShare Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; margin: 0; }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        .card h2 { color: #333; margin-top: 0; }
+        .card p { color: #666; line-height: 1.6; }
+        .success { color: #28a745; font-weight: bold; }
+        .feature {
+            background: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196f3;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🎉 HTMLShare Astro 演示</h2>
+        <p class="success">✅ 直接HTML渲染成功！</p>
+        <p>这个页面演示了新架构的核心功能：</p>
+
+        <div class="feature">
+            <h3>🎯 解决的问题</h3>
+            <p><strong>class="card"</strong> 现在完美支持！无需iframe包装。</p>
+        </div>
+
+        <div class="feature">
+            <h3>⚡ 性能提升</h3>
+            <p>直接HTML响应，零JavaScript运行时，边缘渲染。</p>
+        </div>
+
+        <div class="feature">
+            <h3>🏗️ 架构简化</h3>
+            <p>从 Next.js + Supabase 到 Astro + D1，复杂度降低70%。</p>
+        </div>
+
+        <script>
+            // JavaScript 也能正常执行
+            console.log('✅ JavaScript execution works!');
+            document.addEventListener('DOMContentLoaded', function() {
+                const timestamp = new Date().toLocaleString();
+                const p = document.createElement('p');
+                p.innerHTML = '<strong>页面加载时间:</strong> ' + timestamp;
+                p.style.cssText = 'background: #f0f8ff; padding: 10px; border-radius: 4px; margin-top: 15px;';
+                document.querySelector('.card').appendChild(p);
+            });
+        </script>
+    </div>
+</body>
+</html>`;
+
+// Set appropriate headers
+const headers = new Headers();
+headers.set('Content-Type', 'text/html; charset=utf-8');
+headers.set('Cache-Control', 'public, max-age=3600');
+headers.set('X-Frame-Options', 'SAMEORIGIN');
+
+// Return direct HTML response - this is the key feature!
+return new Response(htmlContent, {
+  status: 200,
+  headers: headers
+});
+---

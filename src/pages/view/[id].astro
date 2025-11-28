@@ -1,0 +1,116 @@
+---
+// src/pages/view/[id].astro - Direct HTML rendering page
+// This page directly renders user HTML content without iframe
+
+export async function getStaticPaths() {
+  // For static generation, return empty paths
+  // Dynamic routes will be handled at runtime
+  return [];
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/');
+}
+
+// Get database from Cloudflare env
+const db = Astro.locals?.runtime?.env?.DB;
+
+if (!db) {
+  return new Response('Database not available', { status: 500 });
+}
+
+// Fetch page content
+let pageData = null;
+try {
+  const result = await db.prepare(`
+    SELECT * FROM pages WHERE url_id = ?
+  `).bind(id).first();
+
+  if (result) {
+    // Increment view count
+    await db.prepare(`
+      UPDATE pages SET view_count = view_count + 1 WHERE url_id = ?
+    `).bind(id).run();
+
+    pageData = result;
+  }
+} catch (error) {
+  console.error('Database error:', error);
+}
+
+if (!pageData) {
+  // Return 404 page
+  return new Response(`
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>页面未找到 - HTMLShare</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            }
+            .container {
+                text-align: center;
+                background: white;
+                padding: 3rem 2rem;
+                border-radius: 1rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 { color: #333; margin-bottom: 1rem; }
+            p { color: #666; margin-bottom: 2rem; line-height: 1.6; }
+            .btn {
+                display: inline-block;
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: transform 0.2s;
+            }
+            .btn:hover { transform: translateY(-2px); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔍 页面未找到</h1>
+            <p>抱歉，您访问的HTML页面不存在或已被删除。</p>
+            <a href="/" class="btn">返回首页</a>
+        </div>
+    </body>
+    </html>
+  `, {
+    status: 404,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+// Set appropriate headers for direct HTML rendering
+const headers = new Headers();
+headers.set('Content-Type', 'text/html; charset=utf-8');
+headers.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+
+// Security headers for user-generated content
+headers.set('X-Frame-Options', 'SAMEORIGIN');
+headers.set('X-Content-Type-Options', 'nosniff');
+
+// Directly return the HTML content
+// This is the key difference from iframe approach - we serve the content directly
+return new Response(pageData.content, {
+  status: 200,
+  headers: headers
+});
+---
