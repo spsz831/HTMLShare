@@ -23,7 +23,7 @@
     "deploy": "npm run build && npx wrangler pages publish dist",
     "setup": "npm run db:create && npm run db:migrate",
     "deploy:full": "npm run setup && npm run build && npm run deploy",
-    "health-check": "curl -f https://htmlshare.pages.dev/",
+    "health-check": "curl -f https://htmlshare.top/api/health",
     "clean": "rm -rf dist .astro node_modules/.cache",
     "reinstall": "rm -rf node_modules package-lock.json && npm install"
   },

@@ -1,10 +1,11 @@
 # HTMLShare
 
-> 一个简单、快速的HTML分享工具
+> 一个简单、快速的HTML分享工具 - 支持在线编辑和实时预览
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Astro](https://img.shields.io/badge/Astro-5.0+-orange.svg)](https://astro.build)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-D1-blue.svg)](https://www.cloudflare.com)
+[![Live Demo](https://img.shields.io/badge/Demo-htmlshare.top-success.svg)](https://htmlshare.top)
 
 ## ✨ 特性
 
@@ -23,9 +24,18 @@
 - **部署**: [Cloudflare Pages](https://pages.cloudflare.com/) - 边缘部署平台
 - **语言**: TypeScript
 
-## 🚀 在线使用
+## 🌐 在线体验
 
-访问 [HTMLShare](https://your-domain.pages.dev) 开始使用：
+🔗 **立即体验**: [https://htmlshare.top](https://htmlshare.top)
+
+HTMLShare 是一个基于 Cloudflare Pages 部署的现代化HTML分享平台，提供：
+
+- 📝 **在线编辑器** - 支持语法高亮的HTML编辑
+- 👁️ **实时预览** - 边写边看，所见即所得
+- 🔗 **一键分享** - 生成唯一链接，轻松分享作品
+- 🚀 **全球加速** - 基于Cloudflare CDN，访问速度极快
+
+## 📋 使用方法
 
 1. **粘贴HTML代码** 或 **上传HTML文件**
 2. 点击 **生成链接** 按钮
@@ -191,4 +201,6 @@ CREATE TABLE pages (
 
 ---
 
-⭐ 如果这个项目对你有帮助，请给它一个星标！
+⭐ **如果这个项目对你有帮助，请给它一个星标！**
+
+🌐 **在线体验**: [https://htmlshare.top](https://htmlshare.top)
