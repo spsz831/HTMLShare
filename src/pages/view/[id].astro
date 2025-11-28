@@ -98,9 +98,56 @@ headers.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 headers.set('X-Frame-Options', 'SAMEORIGIN');
 headers.set('X-Content-Type-Options', 'nosniff');
 
-// Directly return the HTML content
-// This is the key difference from iframe approach - we serve the content directly
-return new Response(pageData.content, {
+// Enhanced CSP to support external resources while maintaining security
+headers.set('Content-Security-Policy',
+  "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *; " +
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' *; " +
+  "style-src 'self' 'unsafe-inline' *; " +
+  "img-src 'self' data: blob: *; " +
+  "font-src 'self' data: *; " +
+  "connect-src 'self' *; " +
+  "frame-src 'self' *; " +
+  "object-src 'none'; " +
+  "base-uri 'self';"
+);
+
+// Allow cross-origin requests for external resources
+headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
+headers.set('Cross-Origin-Opener-Policy', 'unsafe-none');
+
+// Process HTML content to ensure better rendering
+let processedContent = pageData.content;
+
+// Ensure the HTML has proper DOCTYPE if missing
+if (!processedContent.trim().toLowerCase().startsWith('<!doctype')) {
+  processedContent = '<!DOCTYPE html>\n' + processedContent;
+}
+
+// Add meta tags for better rendering if HTML doesn't have proper head section
+if (!processedContent.toLowerCase().includes('<meta charset') && !processedContent.toLowerCase().includes('<meta http-equiv="content-type"')) {
+  // Find head tag or create one
+  const headTagMatch = processedContent.match(/<head[^>]*>/i);
+  if (headTagMatch) {
+    // Insert after opening head tag
+    const headEndIndex = processedContent.indexOf('>', headTagMatch.index) + 1;
+    processedContent = processedContent.slice(0, headEndIndex) +
+      '\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+      processedContent.slice(headEndIndex);
+  } else if (processedContent.toLowerCase().includes('<html')) {
+    // Insert after html tag
+    const htmlTagMatch = processedContent.match(/<html[^>]*>/i);
+    if (htmlTagMatch) {
+      const htmlEndIndex = processedContent.indexOf('>', htmlTagMatch.index) + 1;
+      processedContent = processedContent.slice(0, htmlEndIndex) +
+        '\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n</head>\n' +
+        processedContent.slice(htmlEndIndex);
+    }
+  }
+}
+
+// Directly return the processed HTML content
+// This approach ensures external resources can load properly
+return new Response(processedContent, {
   status: 200,
   headers: headers
 });

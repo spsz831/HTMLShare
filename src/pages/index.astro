@@ -28,30 +28,16 @@ import Layout from '../layouts/Layout.astro';
     <div class="max-w-4xl mx-auto px-6 py-16">
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold text-gray-900 mb-4">
-          分享您的HTML内容
+          粘贴HTML代码或上传文件，生成永久分享链接
         </h2>
         <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-          粘贴HTML代码或上传文件，生成永久分享链接，支持完整HTML文档直接渲染
+          支持完整HTML文档和外部资源加载，一键生成永久访问链接
         </p>
       </div>
 
       <!-- Upload Card -->
       <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
         <form id="htmlForm" class="p-8">
-          <!-- Title Input -->
-          <div class="mb-6">
-            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-              标题
-            </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              placeholder="给您的HTML起个名字..."
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
           <!-- HTML Content -->
           <div class="mb-6">
             <label for="content" class="block text-sm font-medium text-gray-700 mb-2">
@@ -65,20 +51,6 @@ import Layout from '../layouts/Layout.astro';
               class="w-full p-6 font-mono text-sm bg-gray-50/70 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             ></textarea>
-          </div>
-
-          <!-- Description -->
-          <div class="mb-6">
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-              描述 (可选)
-            </label>
-            <input
-              type="text"
-              id="description"
-              name="description"
-              placeholder="简单描述一下这个HTML页面..."
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
           </div>
 
           <!-- Actions -->
@@ -150,8 +122,6 @@ import Layout from '../layouts/Layout.astro';
     const fileInput = document.getElementById('fileInput');
     const clearBtn = document.getElementById('clearBtn');
     const contentTextarea = document.getElementById('content');
-    const titleInput = document.getElementById('title');
-    const descriptionInput = document.getElementById('description');
     const resultDiv = document.getElementById('result');
     const errorDiv = document.getElementById('error');
     const submitBtn = document.getElementById('submitBtn');
@@ -163,9 +133,6 @@ import Layout from '../layouts/Layout.astro';
         const reader = new FileReader();
         reader.onload = function(e) {
           contentTextarea.value = e.target?.result || '';
-          if (!titleInput.value) {
-            titleInput.value = file.name.replace('.html', '').replace('.htm', '');
-          }
         };
         reader.readAsText(file);
       }
@@ -199,10 +166,10 @@ import Layout from '../layouts/Layout.astro';
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            title: formData.get('title') || 'Shared HTML',
+            title: 'Shared HTML',
             content: formData.get('content'),
             language: 'html',
-            description: formData.get('description'),
+            description: null,
             is_public: true
           })
         });
