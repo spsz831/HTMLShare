@@ -21,13 +21,44 @@ class SecurityService {
     return csp;
   }
   /**
-   * Enhanced content sanitization
+   * Enhanced content sanitization that preserves safe external scripts
    */
   static sanitizeContent(content) {
     let sanitized = content.trim();
+    const trustedDomains = [
+      "cdn.tailwindcss.com",
+      "unpkg.com",
+      "cdn.jsdelivr.net",
+      "cdnjs.cloudflare.com",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
+    ];
+    const safeScripts = [];
+    const externalScriptRegex = /<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/script>/gi;
+    sanitized = sanitized.replace(externalScriptRegex, (match) => {
+      const srcMatch = match.match(/src\s*=\s*["']([^"']+)["']/i);
+      if (srcMatch) {
+        const url = srcMatch[1];
+        const isTrusted = trustedDomains.some((domain) => url.includes(domain));
+        if (isTrusted) {
+          const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
+          safeScripts.push(match);
+          return placeholder;
+        }
+      }
+      return "";
+    });
+    const inlineScriptRegex = /<script\b(?![^>]*src\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
+    sanitized = sanitized.replace(inlineScriptRegex, (match, content2) => {
+      const scriptContent = content2.trim();
+      if (scriptContent.includes("tailwind.config") && !scriptContent.includes("eval") && !scriptContent.includes("document.") && !scriptContent.includes("window.") && !scriptContent.includes("fetch")) {
+        const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
+        safeScripts.push(match);
+        return placeholder;
+      }
+      return "";
+    });
     const dangerousPatterns = [
-      // Script tags
-      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
       // Event handlers
       /on\w+\s*=\s*["'][^"']*["']/gi,
       /on\w+\s*=\s*[^>\s]+/gi,
@@ -35,15 +66,14 @@ class SecurityService {
       /javascript\s*:/gi,
       // Data URLs with JavaScript
       /data\s*:\s*text\/html/gi,
-      // Eval and similar functions
-      /eval\s*\(/gi,
-      /setTimeout\s*\(/gi,
-      /setInterval\s*\(/gi,
       // Meta refresh with JavaScript
       /<meta\s+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi
     ];
     dangerousPatterns.forEach((pattern) => {
       sanitized = sanitized.replace(pattern, "");
+    });
+    safeScripts.forEach((script, index) => {
+      sanitized = sanitized.replace(`__SAFE_SCRIPT_${index}__`, script);
     });
     return sanitized;
   }

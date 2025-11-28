@@ -3,7 +3,7 @@ globalThis.process ??= {}; globalThis.process.env ??= {};
 import { e as createComponent, f as createAstro } from '../../chunks/astro/server_CJTHuxak.mjs';
 import { g as getDatabase, D as DatabaseService } from '../../chunks/database_D4APuvuG.mjs';
 import { g as getCacheService } from '../../chunks/cache_vhvYp1Vm.mjs';
-import { S as SecurityService } from '../../chunks/security_bCJkZ78V.mjs';
+import { S as SecurityService } from '../../chunks/security_DfR-BzGl.mjs';
 export { renderers } from '../../renderers.mjs';
 
 class HTMLProcessor {
@@ -63,14 +63,49 @@ ${content}
     return enhanced;
   }
   /**
-   * Light sanitization that preserves layout and styles
+   * Light sanitization for display that preserves safe scripts
    */
   static sanitizeForDisplay(content) {
     let sanitized = content;
-    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+    const trustedDomains = [
+      "cdn.tailwindcss.com",
+      "unpkg.com",
+      "cdn.jsdelivr.net",
+      "cdnjs.cloudflare.com",
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
+    ];
+    const safeScripts = [];
+    const externalScriptRegex = /<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/script>/gi;
+    sanitized = sanitized.replace(externalScriptRegex, (match) => {
+      const srcMatch = match.match(/src\s*=\s*["']([^"']+)["']/i);
+      if (srcMatch) {
+        const url = srcMatch[1];
+        const isTrusted = trustedDomains.some((domain) => url.includes(domain));
+        if (isTrusted) {
+          const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
+          safeScripts.push(match);
+          return placeholder;
+        }
+      }
+      return "";
+    });
+    const inlineScriptRegex = /<script\b(?![^>]*src\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
+    sanitized = sanitized.replace(inlineScriptRegex, (match, content2) => {
+      const scriptContent = content2.trim();
+      if (scriptContent.includes("tailwind.config") && !scriptContent.includes("eval") && !scriptContent.includes("document.") && !scriptContent.includes("window.") && !scriptContent.includes("fetch") && !scriptContent.includes("location") && !scriptContent.includes("history")) {
+        const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
+        safeScripts.push(match);
+        return placeholder;
+      }
+      return "";
+    });
     sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, "");
     sanitized = sanitized.replace(/\son\w+\s*=\s*[^>\s]+/gi, "");
     sanitized = sanitized.replace(/javascript\s*:/gi, "");
+    safeScripts.forEach((script, index) => {
+      sanitized = sanitized.replace(`__SAFE_SCRIPT_${index}__`, script);
+    });
     return sanitized;
   }
 }

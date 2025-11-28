@@ -4,35 +4,6 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="HTMLShare - Fast HTML Sharing">
-  <!-- Theme Variables -->
-  <style>
-    :root {
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8fafc;
-      --bg-card: #ffffff;
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
-      --border-color: #e5e7eb;
-      --accent-color: #3b82f6;
-      --accent-hover: #2563eb;
-    }
-
-    [data-theme="dark"] {
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
-      --bg-card: #1e293b;
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --border-color: #334155;
-      --accent-color: #60a5fa;
-      --accent-hover: #3b82f6;
-    }
-
-    * {
-      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    }
-  </style>
-
   <main class="min-h-screen" style="background-color: var(--bg-primary); color: var(--text-primary);">
     <!-- Clean Header with Theme Toggle -->
     <header class="border-b py-8" style="border-color: var(--border-color);">
@@ -321,6 +292,9 @@ import Layout from '../layouts/Layout.astro';
         showToast('✅ 链接已复制到剪贴板');
       });
     }
+
+    // Make functions available globally for inline HTML events
+    window.copyToClipboard = copyToClipboard;
 
     function showToast(message) {
       // Create toast element with inline styles (no dependency on CSS frameworks)

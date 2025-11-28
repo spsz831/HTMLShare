@@ -1,7 +1,7 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 import { g as getDatabase, a as generateUrlId, D as DatabaseService } from '../../chunks/database_D4APuvuG.mjs';
 import { g as getCacheService } from '../../chunks/cache_vhvYp1Vm.mjs';
-import { S as SecurityService } from '../../chunks/security_bCJkZ78V.mjs';
+import { S as SecurityService } from '../../chunks/security_DfR-BzGl.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const POST = async ({ request, locals }) => {
