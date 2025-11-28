@@ -1,7 +1,9 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 /* empty css                                   */
 import { e as createComponent, f as createAstro } from '../../chunks/astro/server_CJTHuxak.mjs';
-import { g as getDatabase, D as DatabaseService } from '../../chunks/database_CeGPwUoA.mjs';
+import { g as getDatabase, D as DatabaseService } from '../../chunks/database_D4APuvuG.mjs';
+import { g as getCacheService } from '../../chunks/cache_vhvYp1Vm.mjs';
+import { S as SecurityService } from '../../chunks/security_bCJkZ78V.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Astro = createAstro();
@@ -13,12 +15,13 @@ const $$id = createComponent(async ($$result, $$props, $$slots) => {
     return Astro2.redirect("/");
   }
   const db = getDatabase(Astro2.locals);
+  const cache = getCacheService(Astro2.locals);
   if (!db) {
     return new Response("Database not available", { status: 500 });
   }
   let pageData = null;
   try {
-    const dbService = new DatabaseService(db);
+    const dbService = new DatabaseService(db, cache);
     pageData = await dbService.getPageByUrlId(id);
     if (pageData) {
       await dbService.incrementViewCount(id);
@@ -85,12 +88,11 @@ const $$id = createComponent(async ($$result, $$props, $$slots) => {
   const headers = new Headers();
   headers.set("Content-Type", "text/html; charset=utf-8");
   headers.set("Cache-Control", "public, max-age=3600");
-  headers.set("X-Frame-Options", "SAMEORIGIN");
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set(
-    "Content-Security-Policy",
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' *; img-src 'self' data: blob: *; font-src 'self' data: *; connect-src 'self' *; frame-src 'self' *; object-src 'none'; base-uri 'self';"
-  );
+  const securityHeaders = SecurityService.getSecurityHeaders();
+  Object.entries(securityHeaders).forEach(([key, value]) => {
+    headers.set(key, value);
+  });
+  headers.set("Content-Security-Policy", SecurityService.getCSPHeader());
   headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
   headers.set("Cross-Origin-Opener-Policy", "unsafe-none");
   let processedContent = pageData.content;

@@ -1,12 +1,15 @@
-// src/pages/api/pages.ts - API endpoint for creating pages
+// src/pages/api/pages.ts - API endpoint for creating pages with cache support
 import type { APIRoute } from 'astro';
 import { DatabaseService, generateUrlId, getDatabase } from '../../lib/database';
+import { getCacheService } from '../../lib/cache';
+import { SecurityService } from '../../lib/security';
 import type { PageData } from '../../lib/database';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // Get database - Cloudflare D1 only
+    // Get database and cache
     const db = getDatabase(locals);
+    const cache = getCacheService(locals);
 
     if (!db) {
       return new Response(JSON.stringify({
@@ -31,15 +34,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
-    // Basic sanitization (remove script tags for security)
-    let sanitizedContent = data.content.trim();
-
-    // Basic security: remove script tags
-    sanitizedContent = sanitizedContent
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+="[^"]*"/gi, '')
-      .replace(/on\w+='[^']*'/gi, '');
+    // Enhanced sanitization for security
+    let sanitizedContent = SecurityService.sanitizeContent(data.content.trim());
 
     // Basic HTML validation
     if (!sanitizedContent.includes('<') && !sanitizedContent.includes('>')) {
@@ -65,8 +61,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
       is_public: data.is_public !== false // Default to true
     };
 
-    // Save to database
-    const dbService = new DatabaseService(db);
+    // Save to database with cache support
+    const dbService = new DatabaseService(db, cache);
     const savedPage = await dbService.createPage(pageData);
 
     return new Response(JSON.stringify({
@@ -79,7 +75,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
     }), {
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        ...SecurityService.getSecurityHeaders()
+      }
     });
 
   } catch (error) {
@@ -98,6 +97,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 export const GET: APIRoute = async ({ url, locals }) => {
   try {
     const db = getDatabase(locals);
+    const cache = getCacheService(locals);
 
     if (!db) {
       return new Response(JSON.stringify({
@@ -113,7 +113,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const searchParams = url.searchParams;
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50); // Max 50 items
 
-    const dbService = new DatabaseService(db);
+    const dbService = new DatabaseService(db, cache);
     const pages = await dbService.getRecentPages(limit);
 
     return new Response(JSON.stringify({

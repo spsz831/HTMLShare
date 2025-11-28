@@ -1,6 +1,8 @@
-// src/lib/database.ts - Database service for Cloudflare D1
+// src/lib/database.ts - Database service for Cloudflare D1 with cache integration
 import type { D1Database } from '@cloudflare/workers-types';
 import CryptoJS from 'crypto-js';
+import { CompressionService } from './compression';
+import { CacheService } from './cache';
 
 // Page data interface
 export interface PageData {
@@ -12,6 +14,7 @@ export interface PageData {
   description?: string | null;
   view_count?: number;
   is_public?: boolean;
+  is_compressed?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -29,42 +32,76 @@ export function getDatabase(locals?: any): D1Database | null {
   return locals?.runtime?.env?.DB || null;
 }
 
-// Database operations for Cloudflare D1
+// Database operations for Cloudflare D1 with cache integration
 export class DatabaseService {
-  constructor(private db: D1Database) {}
+  constructor(
+    private db: D1Database,
+    private cache?: CacheService | null
+  ) {}
 
-  // Create a new page
+  // Create a new page with compression and cache invalidation
   async createPage(data: Omit<PageData, 'id' | 'created_at' | 'updated_at' | 'view_count'>): Promise<PageData> {
     const urlId = data.url_id || generateUrlId(data.content);
 
+    // Apply smart compression
+    const compressionResult = CompressionService.smartCompress(data.content);
+
     const result = await this.db.prepare(`
-      INSERT INTO pages (url_id, title, content, language, description, is_public)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO pages (url_id, title, content, language, description, is_public, is_compressed)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).bind(
       urlId,
       data.title,
-      data.content,
+      compressionResult.content,
       data.language,
       data.description || null,
-      data.is_public ? 1 : 0
+      data.is_public ? 1 : 0,
+      compressionResult.compressed ? 1 : 0
     ).run();
 
     if (!result.success) {
       throw new Error('Failed to create page');
     }
 
+    // Invalidate recent pages cache when new page is created
+    if (this.cache) {
+      await this.cache.invalidateRecentPages();
+    }
+
     return this.getPageByUrlId(urlId);
   }
 
-  // Get page by URL ID (without incrementing view count)
+  // Get page by URL ID with cache support
   async getPageByUrlId(urlId: string): Promise<PageData | null> {
+    // Try cache first
+    if (this.cache) {
+      const cached = await this.cache.getPage(urlId);
+      if (cached) {
+        await this.cache.updateCacheStats(true); // Cache hit
+        return cached;
+      }
+      await this.cache.updateCacheStats(false); // Cache miss
+    }
+
     const result = await this.db.prepare(`
       SELECT * FROM pages WHERE url_id = ?
     `).bind(urlId).first();
 
     if (!result) return null;
 
-    return result as PageData;
+    const page = result as PageData;
+
+    // Decompress content if it was compressed
+    if (page.is_compressed) {
+      page.content = CompressionService.decompress(page.content);
+    }
+
+    // Cache the result
+    if (this.cache) {
+      await this.cache.setPage(urlId, page);
+    }
+
+    return page;
   }
 
   // Get page by URL ID and increment view count
@@ -92,8 +129,18 @@ export class DatabaseService {
     return result.success;
   }
 
-  // Get recent public pages
+  // Get recent public pages with cache support
   async getRecentPages(limit: number = 10): Promise<PageData[]> {
+    // Try cache first
+    if (this.cache) {
+      const cached = await this.cache.getRecentPages(limit);
+      if (cached) {
+        await this.cache.updateCacheStats(true);
+        return cached;
+      }
+      await this.cache.updateCacheStats(false);
+    }
+
     const result = await this.db.prepare(`
       SELECT url_id, title, language, description, view_count, created_at
       FROM pages
@@ -102,7 +149,14 @@ export class DatabaseService {
       LIMIT ?
     `).bind(limit).all();
 
-    return result.results as PageData[];
+    const pages = result.results as PageData[];
+
+    // Cache the result
+    if (this.cache) {
+      await this.cache.setRecentPages(limit, pages);
+    }
+
+    return pages;
   }
 
   // Delete page (for admin use)

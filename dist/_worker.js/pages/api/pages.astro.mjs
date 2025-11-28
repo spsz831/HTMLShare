@@ -1,10 +1,13 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
-import { g as getDatabase, a as generateUrlId, D as DatabaseService } from '../../chunks/database_CeGPwUoA.mjs';
+import { g as getDatabase, a as generateUrlId, D as DatabaseService } from '../../chunks/database_D4APuvuG.mjs';
+import { g as getCacheService } from '../../chunks/cache_vhvYp1Vm.mjs';
+import { S as SecurityService } from '../../chunks/security_bCJkZ78V.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const POST = async ({ request, locals }) => {
   try {
     const db = getDatabase(locals);
+    const cache = getCacheService(locals);
     if (!db) {
       return new Response(JSON.stringify({
         success: false,
@@ -24,8 +27,7 @@ const POST = async ({ request, locals }) => {
         headers: { "Content-Type": "application/json" }
       });
     }
-    let sanitizedContent = data.content.trim();
-    sanitizedContent = sanitizedContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "").replace(/javascript:/gi, "").replace(/on\w+="[^"]*"/gi, "").replace(/on\w+='[^']*'/gi, "");
+    let sanitizedContent = SecurityService.sanitizeContent(data.content.trim());
     if (!sanitizedContent.includes("<") && !sanitizedContent.includes(">")) {
       return new Response(JSON.stringify({
         success: false,
@@ -45,7 +47,7 @@ const POST = async ({ request, locals }) => {
       is_public: data.is_public !== false
       // Default to true
     };
-    const dbService = new DatabaseService(db);
+    const dbService = new DatabaseService(db, cache);
     const savedPage = await dbService.createPage(pageData);
     return new Response(JSON.stringify({
       success: true,
@@ -57,7 +59,10 @@ const POST = async ({ request, locals }) => {
       }
     }), {
       status: 201,
-      headers: { "Content-Type": "application/json" }
+      headers: {
+        "Content-Type": "application/json",
+        ...SecurityService.getSecurityHeaders()
+      }
     });
   } catch (error) {
     console.error("Error creating page:", error);
@@ -73,6 +78,7 @@ const POST = async ({ request, locals }) => {
 const GET = async ({ url, locals }) => {
   try {
     const db = getDatabase(locals);
+    const cache = getCacheService(locals);
     if (!db) {
       return new Response(JSON.stringify({
         success: false,
@@ -84,7 +90,7 @@ const GET = async ({ url, locals }) => {
     }
     const searchParams = url.searchParams;
     const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
-    const dbService = new DatabaseService(db);
+    const dbService = new DatabaseService(db, cache);
     const pages = await dbService.getRecentPages(limit);
     return new Response(JSON.stringify({
       success: true,

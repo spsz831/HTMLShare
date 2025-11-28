@@ -1,7 +1,7 @@
 -- HTMLShare Astro - Cloudflare D1 Database Schema
 -- Migration from Supabase to D1
 
--- Pages table - core HTML content storage
+-- Pages table - core HTML content storage with compression support
 CREATE TABLE IF NOT EXISTS pages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     url_id TEXT UNIQUE NOT NULL,
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS pages (
     description TEXT,
     view_count INTEGER DEFAULT 0,
     is_public BOOLEAN DEFAULT 1,
+    is_compressed BOOLEAN DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
