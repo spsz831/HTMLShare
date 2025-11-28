@@ -1,11 +1,11 @@
 ---
-// src/layouts/Layout.astro - Base layout for HTMLShare Astro
+// src/layouts/Layout.astro - Clean layout for HTMLShare
 export interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = "快速HTML分享平台 - 基于Astro + Cloudflare D1" } = Astro.props;
+const { title, description = "为开发者提供的快捷HTML分享工具" } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -92,17 +92,5 @@ const { title, description = "快速HTML分享平台 - 基于Astro + Cloudflare 
 
 <body>
   <slot />
-
-  <!-- Footer -->
-  <footer class="mt-20 py-8 text-center text-sm text-gray-400 border-t border-gray-100">
-    <div class="max-w-4xl mx-auto px-6">
-      <p>
-        HTMLShare v2.0 - 基于
-        <a href="https://astro.build" target="_blank" rel="noopener" class="hover:text-blue-500 transition-colors">Astro</a> +
-        <a href="https://developers.cloudflare.com/d1/" target="_blank" rel="noopener" class="hover:text-blue-500 transition-colors">Cloudflare D1</a>
-      </p>
-      <p class="mt-2">快速、安全、直接的HTML分享平台</p>
-    </div>
-  </footer>
 </body>
 </html>

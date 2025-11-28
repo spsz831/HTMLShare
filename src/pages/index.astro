@@ -1,48 +1,108 @@
 ---
-// src/pages/index.astro - Main upload page (Simplified Design)
+// src/pages/index.astro - Clean HTML sharing interface
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="HTMLShare - Simple HTML Sharing">
-  <main class="min-h-screen bg-white">
-    <!-- Simplified Header -->
-    <header class="border-b border-gray-100 py-6">
-      <div class="max-w-3xl mx-auto px-4">
-        <h1 class="text-3xl font-bold text-gray-900 text-center">
-          HTMLShare
-        </h1>
-        <p class="text-gray-500 text-center mt-2 text-sm">
-          Paste HTML code or upload files to generate shareable links
-        </p>
+<Layout title="HTMLShare - Fast HTML Sharing">
+  <!-- Theme Variables -->
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-card: #ffffff;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+      --accent-color: #60a5fa;
+      --accent-hover: #3b82f6;
+    }
+
+    * {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+  </style>
+
+  <main class="min-h-screen" style="background-color: var(--bg-primary); color: var(--text-primary);">
+    <!-- Clean Header with Theme Toggle -->
+    <header class="border-b py-8" style="border-color: var(--border-color);">
+      <div class="max-w-4xl mx-auto px-6">
+        <div class="flex items-center justify-between">
+          <div class="text-center flex-1">
+            <!-- Clean Logo inspired by html-go -->
+            <h1 class="text-4xl font-bold mb-2">
+              <span class="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">HTML</span><span class="bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent">Share</span>
+            </h1>
+            <p class="text-lg" style="color: var(--text-secondary);">
+              为开发者提供的快捷HTML分享工具
+            </p>
+          </div>
+
+          <!-- Theme Toggle Button -->
+          <button
+            id="themeToggle"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            style="background-color: var(--bg-card); border: 1px solid var(--border-color);"
+            title="切换主题"
+          >
+            <!-- Sun Icon -->
+            <svg id="sunIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <!-- Moon Icon -->
+            <svg id="moonIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Simplified Main Content -->
-    <div class="max-w-3xl mx-auto px-4 py-12">
-
-      <!-- Simplified Upload Form -->
-      <div class="bg-gray-50 rounded-lg border border-gray-200 p-6">
+    <!-- Clean Main Content -->
+    <div class="max-w-4xl mx-auto px-6 py-12">
+      <!-- Upload Form -->
+      <div class="rounded-2xl border p-8 shadow-sm" style="background-color: var(--bg-card); border-color: var(--border-color);">
         <form id="htmlForm">
-          <!-- HTML Content -->
-          <div class="mb-4">
-            <label for="content" class="block text-sm font-medium text-gray-700 mb-2">
-              HTML Content
+          <!-- HTML Content Area -->
+          <div class="mb-6">
+            <label for="content" class="block text-sm font-medium mb-3" style="color: var(--text-primary);">
+              请贴入你的 HTML 代码：
             </label>
             <textarea
               id="content"
               name="content"
-              placeholder="Paste your HTML code here..."
-              rows="16"
-              class="w-full p-4 font-mono text-sm bg-white border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="<!DOCTYPE html>
+<html>
+<head>
+    <title>My Page</title>
+</head>
+<body>
+    <h1>Hello World!</h1>
+</body>
+</html>"
+              rows="18"
+              class="w-full p-4 font-mono text-sm rounded-xl resize-none border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);"
               required
             ></textarea>
           </div>
 
-          <!-- Simplified Actions -->
-          <div class="flex gap-3 justify-between">
+          <!-- Action Buttons -->
+          <div class="flex gap-3 justify-between items-center">
             <div class="flex gap-3">
-              <label class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
-                📁 Upload File
+              <!-- Upload File Button -->
+              <label class="flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer hover:bg-opacity-80 transition-all duration-200" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
+                📁 上传文件
                 <input
                   type="file"
                   id="fileInput"
@@ -51,43 +111,78 @@ import Layout from '../layouts/Layout.astro';
                 />
               </label>
 
+              <!-- Clear Button -->
               <button
                 type="button"
                 id="clearBtn"
-                class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                class="px-4 py-2 rounded-lg border hover:bg-opacity-80 transition-all duration-200"
+                style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);"
               >
-                🗑️ Clear
+                🗑️ 清空
               </button>
             </div>
 
+            <!-- Generate Link Button -->
             <button
               type="submit"
               id="submitBtn"
-              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm disabled:opacity-50"
+              class="px-8 py-2 rounded-lg font-medium text-white hover:opacity-90 transition-all duration-200 disabled:opacity-50"
+              style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"
             >
-              Generate Link
+              生成链接
             </button>
           </div>
         </form>
       </div>
 
-      <!-- Simplified Result Section -->
+      <!-- Result Section -->
       <div id="result" class="mt-6 hidden">
         <!-- Result content will be inserted here -->
       </div>
 
-      <!-- Simplified Error Section -->
+      <!-- Error Section with Theme Support -->
       <div id="error" class="mt-6 hidden">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p class="text-red-800 font-medium">❌ Creation failed</p>
-          <p id="errorMessage" class="text-red-600 text-sm mt-1"></p>
+        <div class="rounded-lg border p-4" style="background-color: #fef2f2; border-color: #fca5a5; color: #dc2626;">
+          <p class="font-medium">❌ 创建失败</p>
+          <p id="errorMessage" class="text-sm mt-1"></p>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Simplified JavaScript -->
+  <!-- Enhanced JavaScript with Theme Toggle -->
   <script>
+    // Theme Toggle Functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    const html = document.documentElement;
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    // Theme toggle event
+    themeToggle?.addEventListener('click', function() {
+      const currentTheme = html.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+    });
+
+    function setTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+
+      if (theme === 'dark') {
+        sunIcon?.classList.remove('hidden');
+        moonIcon?.classList.add('hidden');
+      } else {
+        sunIcon?.classList.add('hidden');
+        moonIcon?.classList.remove('hidden');
+      }
+    }
+
+    // Form handling
     const form = document.getElementById('htmlForm');
     const fileInput = document.getElementById('fileInput');
     const clearBtn = document.getElementById('clearBtn');
@@ -125,7 +220,7 @@ import Layout from '../layouts/Layout.astro';
       try {
         if (submitButton) {
           submitButton.disabled = true;
-          submitButton.textContent = '⏳ Creating...';
+          submitButton.textContent = '⏳ 生成中...';
         }
 
         const formData = new FormData(form);
@@ -168,28 +263,31 @@ import Layout from '../layouts/Layout.astro';
       const shareUrl = `${baseUrl}/view/${pageData.url_id}`;
 
       resultDiv.innerHTML = `
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p class="text-green-800 font-medium mb-3">✅ Share link created:</p>
+        <div class="rounded-lg border p-4" style="background-color: #dcfce7; border-color: #86efac; color: #15803d;">
+          <p class="font-medium mb-3">✅ 分享链接已生成:</p>
           <div class="flex gap-2">
             <input
               type="text"
               value="${shareUrl}"
               readonly
-              class="flex-1 px-3 py-2 bg-white border border-green-300 rounded text-sm font-mono focus:outline-none"
+              class="flex-1 px-3 py-2 rounded text-sm font-mono focus:outline-none"
+              style="background-color: rgba(255,255,255,0.8); border: 1px solid #86efac;"
             />
             <button
               onclick="copyToClipboard('${shareUrl}')"
-              class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+              class="px-4 py-2 rounded hover:opacity-90 text-sm text-white transition-all"
+              style="background-color: #059669;"
             >
-              📋 Copy
+              📋 复制
             </button>
             <a
               href="${shareUrl}"
               target="_blank"
               rel="noopener noreferrer"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              class="px-4 py-2 rounded hover:opacity-90 text-sm text-white transition-all"
+              style="background-color: #2563eb;"
             >
-              🔗 Open
+              🔗 打开
             </a>
           </div>
         </div>
@@ -199,7 +297,10 @@ import Layout from '../layouts/Layout.astro';
     }
 
     function showError(message) {
-      document.getElementById('errorMessage').textContent = message;
+      const errorMessage = document.getElementById('errorMessage');
+      if (errorMessage) {
+        errorMessage.textContent = message;
+      }
       errorDiv?.classList.remove('hidden');
       resultDiv?.classList.add('hidden');
     }
