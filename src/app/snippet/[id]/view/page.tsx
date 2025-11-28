@@ -194,7 +194,7 @@ export default function SnippetViewPage() {
     )
   }
 
-  // 纯HTML渲染 - 直接返回iframe内容
+  // 纯HTML渲染 - 直接渲染HTML内容（参考html-go架构）
   if (snippet.language.toLowerCase() === 'html') {
     // 如果renderedContent为空，显示调试信息
     if (!renderedContent) {
@@ -209,24 +209,12 @@ export default function SnippetViewPage() {
       )
     }
 
+    // 直接渲染HTML，不使用iframe（解决F12元素访问问题）
     return (
-      <div style={{ margin: 0, padding: 0, width: '100vw', height: '100vh', overflow: 'hidden' }}>
-        <iframe
-          srcDoc={renderedContent}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            margin: 0,
-            padding: 0,
-            display: 'block'
-          }}
-          title="HTML Preview"
-          loading="eager"
-          onError={(e) => console.error('Iframe error:', e)}
-          onLoad={() => console.log('Iframe loaded successfully')}
-        />
-      </div>
+      <div
+        style={{ margin: 0, padding: 0, width: '100vw', height: '100vh' }}
+        dangerouslySetInnerHTML={{ __html: renderedContent }}
+      />
     )
   }
 
