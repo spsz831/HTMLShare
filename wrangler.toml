@@ -9,8 +9,7 @@ database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"
 
 [[kv_namespaces]]
 binding = "SESSION"
-preview_id = "TBD"
-id = "TBD"
+id = "9ad6a6363cd64879bd6d36cee902a13b"
 
 [env.production]
 name = "htmlshare"
@@ -22,5 +21,4 @@ database_id = "88b9d37a-02d2-45a3-9d83-3c641f708bb7"
 
 [[env.production.kv_namespaces]]
 binding = "SESSION"
-preview_id = "TBD"
-id = "TBD"
+id = "9ad6a6363cd64879bd6d36cee902a13b"
