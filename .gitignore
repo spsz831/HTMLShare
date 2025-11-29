@@ -28,6 +28,12 @@ yarn-error.log*
 # cloudflare
 .dev.vars
 wrangler.toml.local
+.wrangler/
+
+# temporary files
+*-temp.*
+*-placeholder.*
+*-template.*
 
 # typescript
 *.tsbuildinfo

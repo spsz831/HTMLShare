@@ -1,7 +1,0 @@
-
-Please create og-image.png manually using one of the methods above.
-The HTML template is ready at: public/og-image-fallback.html
-
-Target size: 1200x630 pixels
-Format: PNG
-Location: public/og-image.png
