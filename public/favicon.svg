@@ -7,19 +7,13 @@
   </defs>
 
   <!-- Background -->
-  <rect width="32" height="32" rx="7" fill="url(#bgGradient)"/>
+  <rect width="32" height="32" rx="8" fill="url(#bgGradient)"/>
 
-  <!-- Share Symbol - Three connected circles -->
-  <!-- Top circle -->
-  <circle cx="16" cy="10" r="3" fill="white"/>
-
-  <!-- Bottom left circle -->
-  <circle cx="10" cy="22" r="3" fill="white"/>
-
-  <!-- Bottom right circle -->
-  <circle cx="22" cy="22" r="3" fill="white"/>
-
-  <!-- Connection lines -->
-  <line x1="14.5" y1="12" x2="11.5" y2="20" stroke="white" stroke-width="2" stroke-linecap="round"/>
-  <line x1="17.5" y1="12" x2="20.5" y2="20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <!-- Simple Share Icon -->
+  <path d="M22 12 L16 6 L10 12 M16 6 L16 20 M8 20 L24 20"
+        stroke="white"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
 </svg>
