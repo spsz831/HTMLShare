@@ -25,7 +25,8 @@
     "deploy:full": "npm run setup && npm run build && npm run deploy",
     "health-check": "curl -f https://htmlshare.top/api/health",
     "clean": "rm -rf dist .astro node_modules/.cache",
-    "reinstall": "rm -rf node_modules package-lock.json && npm install"
+    "reinstall": "rm -rf node_modules package-lock.json && npm install",
+    "generate:og-image": "node scripts/generate-og-image.js"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.12",

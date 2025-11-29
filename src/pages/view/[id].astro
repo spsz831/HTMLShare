@@ -117,8 +117,64 @@ let processedContent = HTMLProcessor.processHTML(pageData.content);
 // Apply additional sanitization for security
 processedContent = HTMLProcessor.sanitizeForDisplay(processedContent);
 
-// Directly return the processed HTML content
-// This approach ensures external resources can load properly
+// Extract title from HTML content for better social sharing
+const titleMatch = processedContent.match(/<title[^>]*>([^<]*)<\/title>/i);
+const extractedTitle = titleMatch ? titleMatch[1].trim() : pageData.title || 'Shared HTML';
+
+// Generate social media meta tags
+const shareUrl = `https://htmlshare.top/view/${id}`;
+const shareTitle = `${extractedTitle} - HTMLShare`;
+const shareDescription = pageData.description || `查看在 HTMLShare 上分享的 HTML 代码: ${extractedTitle}`;
+const shareImage = 'https://htmlshare.top/og-image.png';
+
+// Inject social media meta tags into the HTML head
+const socialMetaTags = `
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="${shareUrl}" />
+  <meta property="og:title" content="${shareTitle}" />
+  <meta property="og:description" content="${shareDescription}" />
+  <meta property="og:image" content="${shareImage}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="HTMLShare - 极简代码分享工具" />
+  <meta property="og:site_name" content="HTMLShare" />
+  <meta property="og:locale" content="zh_CN" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@htmlshare" />
+  <meta name="twitter:creator" content="@spsz831" />
+  <meta name="twitter:title" content="${shareTitle}" />
+  <meta name="twitter:description" content="${shareDescription}" />
+  <meta name="twitter:image" content="${shareImage}" />
+  <meta name="twitter:image:alt" content="HTMLShare - 极简代码分享工具" />
+
+  <!-- Additional SEO Meta Tags -->
+  <meta name="description" content="${shareDescription}" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="HTMLShare" />
+  <link rel="canonical" href="${shareUrl}" />
+`;
+
+// Inject meta tags into HTML head
+if (processedContent.includes('<head>')) {
+  processedContent = processedContent.replace(
+    /<head([^>]*)>/i,
+    `<head$1>${socialMetaTags}`
+  );
+} else if (processedContent.includes('<html')) {
+  // If no head tag, add one after html tag
+  processedContent = processedContent.replace(
+    /<html([^>]*)>/i,
+    `<html$1><head>${socialMetaTags}</head>`
+  );
+} else {
+  // If no html structure, wrap with basic HTML
+  processedContent = `<!DOCTYPE html><html><head>${socialMetaTags}</head><body>${processedContent}</body></html>`;
+}
+
+// Directly return the processed HTML content with social meta tags
 return new Response(processedContent, {
   status: 200,
   headers: headers

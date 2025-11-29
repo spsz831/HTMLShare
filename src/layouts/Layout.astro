@@ -4,12 +4,18 @@ export interface Props {
   title: string;
   description?: string;
   keywords?: string;
+  ogImage?: string;
+  ogUrl?: string;
+  ogType?: string;
 }
 
 const {
   title,
   description = "HTMLShare 是一个轻量级的在线 HTML 编辑器和分享工具。支持实时预览，一键生成分享链接，适合前端开发者快速测试和分享代码片段。",
-  keywords = "HTML编辑器, 在线代码运行, HTML分享, 前端开发工具, 实时预览"
+  keywords = "HTML编辑器, 在线代码运行, HTML分享, 前端开发工具, 实时预览",
+  ogImage = "https://htmlshare.top/og-image.png",
+  ogUrl = "https://htmlshare.top/",
+  ogType = "website"
 } = Astro.props;
 ---
 
@@ -22,28 +28,36 @@ const {
   <meta name="description" content={description} />
   <meta name="keywords" content={keywords} />
 
-  <link rel="canonical" href="https://htmlshare.top/" />
+  <link rel="canonical" href={ogUrl} />
 
   <!-- Open Graph / Facebook -->
-  <meta property="og:url" content="https://htmlshare.top/" />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:url" content={ogUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="HTMLShare - 极简代码分享工具" />
   <meta property="og:site_name" content="HTMLShare" />
+  <meta property="og:locale" content="zh_CN" />
 
-  <!-- Twitter -->
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@htmlshare" />
   <meta name="twitter:creator" content="@spsz831" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+  <meta name="twitter:image:alt" content="HTMLShare - 极简代码分享工具" />
+
+  <!-- Additional SEO Meta Tags -->
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="spsz831" />
+  <meta name="theme-color" content="#3b82f6" />
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="generator" content={Astro.generator} />
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:title" content={title} />
-  <meta property="twitter:description" content={description} />
 
   <title>{title}</title>
 
