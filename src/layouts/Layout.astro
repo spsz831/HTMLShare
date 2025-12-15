@@ -30,6 +30,16 @@ const {
 
   <link rel="canonical" href={ogUrl} />
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LPWX3PFBWB"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-LPWX3PFBWB');
+  </script>
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content={ogType} />
   <meta property="og:url" content={ogUrl} />
