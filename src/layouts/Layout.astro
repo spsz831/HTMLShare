@@ -1,12 +1,14 @@
 ---
 // src/layouts/Layout.astro - Clean layout for HTMLShare
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import WebVitals from '../components/WebVitals.astro';
+
 export interface Props {
   title: string;
-  description?: string;
-  keywords?: string;
-  ogImage?: string;
-  ogUrl?: string;
-  ogType?: string;
+// ... (existing props)
 }
 
 const {
@@ -107,15 +109,7 @@ const {
   <meta name="generator" content={Astro.generator} />
 
   <title>{title}</title>
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-
+  
   <style>
     /* Theme Variables */
     :root {
@@ -195,5 +189,6 @@ const {
 
 <body>
   <slot />
+  <WebVitals />
 </body>
 </html>

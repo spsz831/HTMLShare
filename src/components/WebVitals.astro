@@ -1,0 +1,29 @@
+---
+---
+
+<script is:inline src="https://unpkg.com/web-vitals@4/dist/web-vitals.iife.js"></script>
+<script is:inline>
+  function sendToAnalytics(metric) {
+    const { name, delta, id } = metric;
+    
+    // @ts-ignore
+    if (typeof window.gtag === 'function') {
+      // @ts-ignore
+      window.gtag('event', name, {
+        event_category: 'Web Vitals',
+        event_label: id,
+        value: Math.round(name === 'CLS' ? delta * 1000 : delta),
+        non_interaction: true,
+      });
+    } else {
+        console.log(`[Web Vitals] ${name}: ${delta}`);
+    }
+  }
+
+  if (window.webVitals) {
+    const { onCLS, onFID, onLCP } = window.webVitals;
+    onCLS(sendToAnalytics);
+    onFID(sendToAnalytics);
+    onLCP(sendToAnalytics);
+  }
+</script>
