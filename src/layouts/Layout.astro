@@ -40,6 +40,36 @@ const {
     gtag('config', 'G-LPWX3PFBWB');
   </script>
 
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "HTMLShare",
+      "url": "https://htmlshare.top/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://htmlshare.top/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "HTMLShare",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "A simple, fast HTML sharing tool built with Astro and Cloudflare."
+    }
+  </script>
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content={ogType} />
   <meta property="og:url" content={ogUrl} />
