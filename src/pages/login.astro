@@ -1,0 +1,98 @@
+---
+// src/pages/login.astro
+import Layout from '../layouts/Layout.astro';
+
+// Handle POST request
+let error = '';
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+    const password = data.get("password");
+    
+    // Check password against environment variable
+    const correctPassword = 
+      (Astro.locals as any)?.runtime?.env?.SITE_PASSWORD || 
+      import.meta.env.SITE_PASSWORD || 
+      '156437';
+      
+    if (password === correctPassword) {
+      // Set auth cookie
+      Astro.cookies.set("htmlshare_auth", "authenticated", { 
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        httpOnly: true,
+        secure: import.meta.env.PROD,
+        sameSite: 'lax'
+      });
+      return Astro.redirect("/");
+    } else {
+      error = "密码不正确，请重试";
+    }
+  } catch (err) {
+    error = "验证出错，请重试";
+  }
+}
+
+// If already authenticated, redirect to home
+if (Astro.cookies.get("htmlshare_auth")?.value === "authenticated") {
+  return Astro.redirect("/");
+}
+---
+
+<Layout title="登录 - HTMLShare" description="登录以访问HTMLShare功能">
+  <main class="min-h-screen flex flex-col items-center justify-center p-4 relative" style="background-color: var(--bg-primary);">
+    <!-- Decorative background -->
+    <div class="absolute inset-0 pointer-events-none opacity-40 z-0" style="background-image: radial-gradient(var(--border-color) 1px, transparent 1px); background-size: 24px 24px;"></div>
+    
+    <!-- Title Section -->
+    <div class="text-center mb-8 relative z-10">
+      <h1 class="text-4xl md:text-5xl font-bold mb-3">
+        <span class="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">HTML</span><span style="color: var(--text-primary);">Share</span>
+      </h1>
+      <p class="text-sm md:text-base font-medium tracking-wide" style="color: var(--text-secondary);">为开发者提供的快捷HTML分享工具</p>
+    </div>
+
+    <!-- Login Container -->
+    <div class="w-full max-w-sm relative z-10">
+      <div class="rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border p-8 backdrop-blur-xl" style="background-color: var(--bg-card); border-color: var(--border-color);">
+        <h2 class="text-lg md:text-xl font-bold text-center mb-6 tracking-wide" style="color: var(--text-primary);">请输入访问密码</h2>
+        
+        <form method="POST" class="space-y-5">
+          <div class="relative">
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="请输入访问密码..." 
+              required
+              class="w-full px-4 py-3 text-sm md:text-base rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+              style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);"
+            />
+          </div>
+          
+          {error && (
+            <div class="text-red-500 text-sm text-center font-medium animate-pulse bg-red-50 py-2 rounded-lg border border-red-100">
+              {error}
+            </div>
+          )}
+          
+          <button 
+            type="submit"
+            class="w-full py-3.5 rounded-xl font-medium text-white shadow hover:opacity-90 transform active:scale-[0.98] transition-all duration-200"
+            style="background: linear-gradient(135deg, #3b82f6, #4f46e5);"
+          >
+            登 录
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Ensure dark/light mode matches system preference on this page naturally
+    const html = document.documentElement;
+    if (!html.hasAttribute('data-theme')) {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+    }
+  </script>
+</Layout>
