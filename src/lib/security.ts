@@ -24,77 +24,19 @@ export class SecurityService {
   }
 
   /**
-   * Enhanced content sanitization that preserves safe external scripts
+   * Enhanced content sanitization (Relaxed to support AI generated code)
+   * This preserves scripts, styles and event handlers, relying on CSP for security.
    */
   static sanitizeContent(content: string): string {
     let sanitized = content.trim();
 
-    // List of trusted CDN domains for scripts and styles
-    const trustedDomains = [
-      'cdn.tailwindcss.com',
-      'unpkg.com',
-      'cdn.jsdelivr.net',
-      'cdnjs.cloudflare.com',
-      'fonts.googleapis.com',
-      'fonts.gstatic.com'
-    ];
-
-    // Remove dangerous inline scripts while preserving safe external ones
-    // Handle both <script src="..."></script> and <script>content</script> formats
-    const safeScripts: string[] = [];
-
-    // First handle external scripts with src attribute
-    const externalScriptRegex = /<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/script>/gi;
-    sanitized = sanitized.replace(externalScriptRegex, (match) => {
-      const srcMatch = match.match(/src\s*=\s*["']([^"']+)["']/i);
-      if (srcMatch) {
-        const url = srcMatch[1];
-        const isTrusted = trustedDomains.some(domain => url.includes(domain));
-        if (isTrusted) {
-          const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
-          safeScripts.push(match);
-          return placeholder;
-        }
-      }
-      return ''; // Remove untrusted external scripts
-    });
-
-    // Then handle inline scripts
-    const inlineScriptRegex = /<script\b(?![^>]*src\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
-    sanitized = sanitized.replace(inlineScriptRegex, (match, content) => {
-      const scriptContent = content.trim();
-      if (scriptContent.includes('tailwind.config') &&
-          !scriptContent.includes('eval') &&
-          !scriptContent.includes('document.') &&
-          !scriptContent.includes('window.') &&
-          !scriptContent.includes('fetch')) {
-        const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
-        safeScripts.push(match);
-        return placeholder;
-      }
-      return ''; // Remove unsafe inline scripts
-    });
-
-    // Remove other dangerous patterns
+    // We only remove dangerous meta refresh to prevent silent redirects
     const dangerousPatterns = [
-      // Event handlers
-      /on\w+\s*=\s*["'][^"']*["']/gi,
-      /on\w+\s*=\s*[^>\s]+/gi,
-      // JavaScript protocol
-      /javascript\s*:/gi,
-      // Data URLs with JavaScript
-      /data\s*:\s*text\/html/gi,
-      // Meta refresh with JavaScript
       /<meta\s+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi
     ];
 
     dangerousPatterns.forEach(pattern => {
       sanitized = sanitized.replace(pattern, '');
-    });
-
-    // Restore safe scripts
-    safeScripts.forEach((script, index) => {
-      sanitized = sanitized.replace(`__SAFE_SCRIPT_${index}__`, script);
     });
 
     return sanitized;

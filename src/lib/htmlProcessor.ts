@@ -79,66 +79,19 @@ ${content}
   }
 
   /**
-   * Light sanitization for display that preserves safe scripts
+   * Light sanitization for display (Relaxed to support AI generated code)
+   * This preserves scripts, styles and event handlers, relying on CSP for security.
    */
   static sanitizeForDisplay(content: string): string {
     let sanitized = content;
 
-    // List of trusted CDN domains for scripts and styles
-    const trustedDomains = [
-      'cdn.tailwindcss.com',
-      'unpkg.com',
-      'cdn.jsdelivr.net',
-      'cdnjs.cloudflare.com',
-      'fonts.googleapis.com',
-      'fonts.gstatic.com'
+    // We only remove dangerous meta refresh to prevent silent redirects
+    const dangerousPatterns = [
+      /<meta\s+http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi
     ];
 
-    // Remove dangerous inline scripts while preserving safe external ones
-    const safeScripts: string[] = [];
-
-    // First handle external scripts with src attribute
-    const externalScriptRegex = /<script\b[^>]*src\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/script>/gi;
-    sanitized = sanitized.replace(externalScriptRegex, (match) => {
-      const srcMatch = match.match(/src\s*=\s*["']([^"']+)["']/i);
-      if (srcMatch) {
-        const url = srcMatch[1];
-        const isTrusted = trustedDomains.some(domain => url.includes(domain));
-        if (isTrusted) {
-          const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
-          safeScripts.push(match);
-          return placeholder;
-        }
-      }
-      return ''; // Remove untrusted external scripts
-    });
-
-    // Then handle inline scripts
-    const inlineScriptRegex = /<script\b(?![^>]*src\s*=)[^>]*>([\s\S]*?)<\/script>/gi;
-    sanitized = sanitized.replace(inlineScriptRegex, (match, content) => {
-      const scriptContent = content.trim();
-      if (scriptContent.includes('tailwind.config') &&
-          !scriptContent.includes('eval') &&
-          !scriptContent.includes('document.') &&
-          !scriptContent.includes('window.') &&
-          !scriptContent.includes('fetch') &&
-          !scriptContent.includes('location') &&
-          !scriptContent.includes('history')) {
-        const placeholder = `__SAFE_SCRIPT_${safeScripts.length}__`;
-        safeScripts.push(match);
-        return placeholder;
-      }
-      return ''; // Remove unsafe inline scripts
-    });
-
-    // Remove other dangerous patterns
-    sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '');
-    sanitized = sanitized.replace(/\son\w+\s*=\s*[^>\s]+/gi, '');
-    sanitized = sanitized.replace(/javascript\s*:/gi, '');
-
-    // Restore safe scripts
-    safeScripts.forEach((script, index) => {
-      sanitized = sanitized.replace(`__SAFE_SCRIPT_${index}__`, script);
+    dangerousPatterns.forEach(pattern => {
+      sanitized = sanitized.replace(pattern, '');
     });
 
     return sanitized;
